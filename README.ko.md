@@ -1,5 +1,8 @@
 # global-shader
 
+[![ci](https://github.com/joonhoekim/global-shader-for-macos/actions/workflows/ci.yml/badge.svg)](https://github.com/joonhoekim/global-shader-for-macos/actions/workflows/ci.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 macOS 판 하이프랜드 `decoration:screen_shader`.
 
 렌더링이 끝난 화면 한 장에 프래그먼트 셰이더를 한 번 더 건다. 바탕도 메뉴 막대도

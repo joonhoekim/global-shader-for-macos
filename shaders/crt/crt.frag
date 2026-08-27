@@ -45,7 +45,7 @@
 // That terminal shader in turn descends from **Maxim Samoliuk's Hyprland screen shader
 // (MIT)**, which shipped in the space_dots (Golden Era) rice. Bloom, grain, flicker,
 // chromatic aberration, and the edge treatment were all rewritten, but it is a derivative
-// work and is credited here. See ../../LICENSE.
+// work and is credited here. See ../../THIRD-PARTY-NOTICES.md.
 //
 // Edits take effect the moment you save.
 

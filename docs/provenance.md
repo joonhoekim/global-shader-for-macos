@@ -4,7 +4,8 @@
 
 ## License and provenance
 
-MIT. See [LICENSE](../LICENSE).
+MIT. See [LICENSE](../LICENSE); the attribution is in
+[THIRD-PARTY-NOTICES.md](../THIRD-PARTY-NOTICES.md).
 
 `shaders/` falls into two groups.
 

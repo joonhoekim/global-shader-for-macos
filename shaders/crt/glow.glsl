@@ -1,7 +1,8 @@
 // glow.glsl — phosphor afterglow alone. What is worth running every day from crt.frag.
 //
 // So it shares the same origin — Maxim Samoliuk's Hyprland screen shader (MIT) from the
-// space_dots (Golden Era) rice. The details are in the header of ./crt.frag and ../../LICENSE.
+// space_dots (Golden Era) rice. The details are in the header of ./crt.frag and in
+// ../../THIRD-PARTY-NOTICES.md.
 //
 // No curvature, no chromatic aberration, no grille. Text blooms slightly and a very shallow
 // scanline lies over it, so body text stays as readable as it was. It does not use iTime,

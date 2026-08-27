@@ -8,9 +8,8 @@ somebody else.
 
 ## Where it stands
 
-**Everything below is done except the screenshots** (52 of 55). What is left either
-needs a person in front of a machine (screenshot, GIF) or belongs to work deliberately
-not done yet (`THIRD-PARTY-LICENSES.md` — needed once the tools go in the bundle).
+**Everything below is done except the screenshots** (54 of 55). What is left needs a
+person in front of a machine (screenshot, GIF).
 
 What is finished, in summary:
 
@@ -42,10 +41,11 @@ Concretely, `tools/release.sh` builds all the way to the zip and leaves the sign
 section empty. Two lines — `codesign --options runtime` and `notarytool submit` — go in
 there and it is done.
 
-**The repo is still private.** Going public comes after this list. The reason for that
-order is in the "Naming and traces" section of [`repo-shape.md`](repo-shape.md) — the
-source held more than ten sentences that only somebody who knows `~/nixos-config` could
-read, and fixing them after publishing would leave that state in the history.
+**The repo is public as of this list being finished.** Going public came after it, not
+before. The reason for that order is in the "Naming and traces" section of
+[`repo-shape.md`](repo-shape.md) — the source held more than ten sentences that only
+somebody who knows `~/nixos-config` could read, and fixing them after publishing would
+have left that state in the history.
 
 ## Documents
 

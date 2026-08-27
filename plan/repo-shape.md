@@ -178,7 +178,8 @@ state that **"Bison was removed long ago"**.
 Bundling it in an MIT app does not make GPL infectious. The **attribution obligations** of
 BSD-3, MIT, and Apache-2.0 do remain.
 
-- [ ] `THIRD-PARTY-LICENSES.md` — required when C happens. It can be written ahead of time
+- [x] `THIRD-PARTY-NOTICES.md` — written ahead of time. It carries the shader attribution
+      today and has the slot for the bundled tools' notices when C happens
 
 (Not legal advice; the result of reading the licence files.)
 

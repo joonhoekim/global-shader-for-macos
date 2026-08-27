@@ -4,7 +4,8 @@
 
 ## 라이선스와 출처
 
-MIT. 자세한 건 [LICENSE](../LICENSE).
+MIT. 자세한 건 [LICENSE](../LICENSE), 출처 표기는
+[THIRD-PARTY-NOTICES.md](../THIRD-PARTY-NOTICES.md).
 
 `shaders/` 는 갈래가 둘이다.
 
