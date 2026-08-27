@@ -55,9 +55,12 @@ blurrier, not sharper.
   region is expected to come out black, but **this has not been confirmed.**
 - **Screenshots** — the shader does not appear in them by default (see
   [Feedback](architecture.md)).
-- **Battery** — continuous redraw uses the GPU at the refresh rate even on a
-  still screen. This is exactly the fork Hyprland's `debug:vfr` presents, and
-  here `--redraw auto` (the default) decides it. See [Knobs](knobs.md).
+- **Battery and heat** — continuous redraw uses the GPU at the refresh rate even
+  on a still screen. This is exactly the fork Hyprland's `debug:vfr` presents, and
+  here `--redraw auto` (the default) decides it. See [Knobs](knobs.md). The cost
+  scales with pixels × frames, so a larger or faster display pays more of it before
+  any shader runs — and on a laptop it comes out as warmth as much as battery.
+  **Power draw and temperature have not been measured**, only per-frame cost.
 - **Refresh rate** — read from `NSScreen.maximumFramesPerSecond`.
   `CGDisplayMode.refreshRate` is known to return 0 on built-in ProMotion panels,
   which would cut 120Hz down to 60. That fork does not show up on a 60Hz machine,
@@ -71,7 +74,14 @@ blurrier, not sharper.
   measured stacked.**
 - Chain performance is not measured either. Every row in the table above is a
   single shader.
-- Multiple displays are supported in code but **only verified on one.**
+- **The cost table is from a machine this is no longer developed on.** It was taken
+  on a MacBook Air M2 with its built-in 60Hz panel; the current machine is an M4 Pro
+  driving one larger external display in clamshell. Nothing has been re-measured
+  there, and the two differences pull in opposite directions — a faster GPU makes
+  each frame cheaper, more pixels make it dearer. Treat every number above as
+  belonging to the machine named beside it.
+- Multiple displays are supported in code but **only verified on one.** Clamshell
+  with a single external display is still one display, so that has not changed.
 - The deployment target is macOS 13.0. It was 14.0 for no reason; 13.0 builds
   without a single warning, and 12.3 is blocked by exactly one line
   (`cfg.capturesAudio = false`, which only states the default). **Only 15 has

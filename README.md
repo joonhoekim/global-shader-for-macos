@@ -81,6 +81,32 @@ starting a second. To stop it: `◲` → Quit, `--stop`, or SIGINT/SIGTERM.
 `--help` lists every option. It speaks English or Korean; see
 [Languages](docs/i18n.md).
 
+## What it costs
+
+It films the screen continuously and draws it back, so the load is proportional to
+**pixels × frames** — it grows with the display before the shader is even
+considered. A scaled display mode is captured at the *backing* resolution, which is
+larger than the panel; a 120Hz panel asks for twice the frames of a 60Hz one; and
+even a passthrough with no shader has a floor that no amount of shader work gets
+below.
+
+On a laptop that shows up as **battery drain and heat**, and more of both on a
+larger display. The dials:
+
+```sh
+--scale 0.7      fewer pixels — cost falls with the square, so 0.7 is about half
+--fps 30         fewer frames
+--redraw never   stop drawing when the screen has not changed
+```
+
+A shader's `!motion` knobs do it from the other side: set them to 0 and continuous
+redraw switches off on its own. Shaders that never read `time` (`paper.frag`,
+`glow.glsl`) cost nothing on a still screen to begin with.
+
+**Frame cost is measured; power draw and temperature are not** — and the numbers in
+[Performance](docs/performance.md) come from one machine, a 60Hz MacBook Air M2.
+They say nothing about yours.
+
 ## The shaders
 
 ```
