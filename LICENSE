@@ -1,0 +1,44 @@
+MIT License
+
+Copyright (c) 2026 joonhoekim
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR OTHER DEALINGS IN THE SOFTWARE.
+
+---
+
+## Third-party
+
+The CRT shaders — `shaders/crt/crt.frag` and `shaders/crt/glow.glsl` — are
+derivative work. The rest of `shaders/` is not; see `docs/provenance.md`.
+
+**Copyright 2023 Maxim Samoliuk — Hyprland screen shader (MIT)**, as shipped in
+the "space_dots (Golden Era)" rice (vdawg's chezmoi dotfiles, at
+`.other/hyprshaders/orig.frag`). `crt.frag` traces back to it through the
+author's ghostty terminal shader; `glow.glsl` in turn derives from `crt.frag`.
+
+What actually survives is the barrel-distortion formula in `curve()` and the
+`uv * (1.0 - uv.yx)` vignette idiom, both with changed constants. Bloom
+sampling, grain, scanlines, chromatic aberration and edge handling were
+rewritten — `crt.frag`'s header records what changed and why — and flicker,
+gamut reduction and phosphor tinting were dropped. Both surviving fragments are
+common Shadertoy CRT idioms that predate the upstream, so this is likely more
+credit than the license strictly requires. It is given anyway, because the path
+is real and known.
+
+No canonical URL for the original shader itself was recorded when it was first
+adapted; if you know it, a pull request adding it here is welcome.

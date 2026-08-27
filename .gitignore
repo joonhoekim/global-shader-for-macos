@@ -1,0 +1,7 @@
+build/
+Sources/Generated.swift
+Sources/Strings.swift
+_temp/
+
+# MacOS
+.DS_Store

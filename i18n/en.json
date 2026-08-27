@@ -1,0 +1,632 @@
+{
+  "capture.diag.excluded": {
+    "args": [
+      "Int",
+      "String",
+      "String"
+    ],
+    "en": "excluded %1$d app(s): pid %2$@ bundle '%3$@'"
+  },
+  "capture.diag.notExcluded": {
+    "args": [
+      "Int"
+    ],
+    "en": "our app is not in SCShareableContent — per-app exclusion is not in effect (pid %1$d)"
+  },
+  "capture.err.noDisplay": {
+    "args": [
+      "Int"
+    ],
+    "en": "display %1$d not found"
+  },
+  "capture.hint.adhoc": {
+    "args": [
+      "String"
+    ],
+    "en": "It can be denied even when System Settings shows it on — this app is ad-hoc\nsigned, so rebuilding changes the signature, and TCC ties the grant to the old one.\n  tccutil reset ScreenCapture %1$@\nthen start it again and allow. Running ./tools/make-signing-cert.sh once removes\nthis round trip for good."
+  },
+  "capture.problem.denied": {
+    "en": "Screen Recording permission was denied"
+  },
+  "capture.problem.notStarted": {
+    "en": "capture did not start. Screen Recording permission appears to be granted."
+  },
+  "check.demoted": {
+    "args": [
+      "String"
+    ],
+    "en": "   knobs folded — %1$@"
+  },
+  "check.knobs": {
+    "args": [
+      "Int",
+      "String"
+    ],
+    "en": "   %1$d knob(s): %2$@"
+  },
+  "check.motionGates": {
+    "args": [
+      "String",
+      "String"
+    ],
+    "en": "   %1$@set these to 0 to turn it off: %2$@",
+    "note": "%1$@ is the slot number when there is a chain (\"2. \"). With only one it is the\nempty string, so it has to sit inside the indent for the line to stay aligned."
+  },
+  "check.ok": {
+    "args": [
+      "String",
+      "String"
+    ],
+    "en": "ok — %1$@ (%2$@ convention)"
+  },
+  "check.redraw": {
+    "args": [
+      "String"
+    ],
+    "en": "redraw: %1$@"
+  },
+  "check.redrawOn": {
+    "en": "on (reads time)"
+  },
+  "cli.alreadyRunning": {
+    "args": [
+      "String"
+    ],
+    "en": "global-shader is already running%1$@.\n\nA second instance films the first one's overlay — SCContentFilter excludes by\nprocess, so the same app is not excluded from its own capture. The shader then\nruns over its own output every frame and the screen falls apart.\n\nIf you meant to change the shader, just name the file — the running one changes:\n  global-shader <shader.frag>\n  global-shader --profile <name>\n\nTo stop it: ◲ → Quit in the menu bar, or\n  global-shader --stop\n",
+    "note": "%1$@ is either \" (pid 123)\" or the empty string. The pid cannot always be found,\nso the parentheses go in and out with it."
+  },
+  "cli.alreadyRunning.pids": {
+    "args": [
+      "String"
+    ],
+    "en": " (pid %1$@)"
+  },
+  "cli.err.checkNeedsFile": {
+    "en": "--check needs a shader file"
+  },
+  "cli.err.noMetal": {
+    "en": "no Metal device"
+  },
+  "cli.err.noRenderer": {
+    "en": "could not create the renderer"
+  },
+  "cli.err.notRunning": {
+    "en": "global-shader is not running"
+  },
+  "cli.err.setNeedsArgs": {
+    "en": "--set needs a name and a value"
+  },
+  "cli.err.unknownLang": {
+    "args": [
+      "String",
+      "String"
+    ],
+    "en": "--lang: unknown language '%1$@'. This build has: %2$@"
+  },
+  "cli.err.unknownOption": {
+    "args": [
+      "String"
+    ],
+    "en": "unknown option: %1$@"
+  },
+  "cli.usage": {
+    "en": "global-shader — put a fragment shader over the whole screen.\n\n  global-shader                      start with the chain saved in the settings\n  global-shader <shader> [<shader>…] apply in the given order and save that chain\n  global-shader --profile <name>     apply a profile\n\nIf one is already running, all three **change the running one and exit.** A second\ninstance is never started — that would be feedback in itself.\n\nOptions (this run only. The menu bar is where you change things for good)\n  --fps N          capture/render cap. Defaults to each display's refresh rate.\n  --scale F        capture/render resolution scale (0.25–1.0). The first knob to\n                   reach for when frames run short. Pixel count falls as F² —\n                   0.8 drops 36% of them.\n  --no-hot-reload  do not re-read a shader when its file changes.\n  --redraw M       keep drawing even when the screen does not change.\n                   auto | always | never. auto turns it on when any shader in\n                   the chain reads time.\n  --diag           feedback diagnostic. Draws a marker in the top-left 64px and\n                   watches for it in the next capture. If it comes back, the\n                   overlay is filming itself.\n  --exit-after N   exit on its own after N seconds.\n  --capturable     let the overlay appear in screenshots and screen recordings.\n  --allow-multiple skip the instance lock. **Feedback will run.** For testing.\n  --no-knobs       do not promote `#define NAME value  // @min..max` to uniforms.\n  --no-vsync       turn off vsync. For measuring what a shader really costs.\n  --space-fix M    how to handle the stale frame right after a Space switch.\n                   off | freeze | hide.\n  --lang L         language for this run. Otherwise the settings, then the system.\n  --check          translate and build the pipeline only. No window, no permission.\n  --dump-msl       --check plus the translated MSL on stdout.\n\nTalking to a running instance (unix socket)\n  --get            every knob as JSON (in a chain, ids look like \"2.CURVE\")\n  --set NAME VAL   change one knob. On a name clash, qualify it as \"2.CURVE\".\n  --reset [NAME]   go back to the values in the shader file\n  --chain          the current chain as JSON\n  --profiles       the saved profile names\n  --reload         re-read the shaders\n  --status         the current state as JSON\n  --stop           exit\n  -h, --help\n  -V, --version\n\nEverything spoken over the socket is always English. It is a hole for programs,\nnot for people, so the answer must not depend on a language setting.\n\nSettings live in ~/.config/global-shader/config.json, profiles beside it in profiles/.\n\nShader conventions (both are detected automatically)\n  hyprland    v_texcoord / tex / screen_size / pointer_position / time inside main()\n  shadertoy   iChannel0 / iResolution / iTime / iMouse inside\n              mainImage(out vec4, in vec2)\n\nTo stop it: Quit from the menu bar status item, or SIGINT/SIGTERM to this process.",
+    "note": "Everything -h prints. One key per block rather than per line, because the column\nalignment of the option descriptions differs by language."
+  },
+  "config.err.encodeFailed": {
+    "en": "encoding failed"
+  },
+  "config.err.nixSymlink": {
+    "en": "this is a nix store symlink and cannot be edited — changes last only for this run"
+  },
+  "config.err.writeFailed": {
+    "args": [
+      "String"
+    ],
+    "en": "could not write settings: %1$@"
+  },
+  "dlg.badName.body": {
+    "en": "An empty name, a name starting with a dot, or one containing / is not allowed."
+  },
+  "dlg.badName.title": {
+    "en": "That name cannot be used"
+  },
+  "dlg.cancel": {
+    "en": "Cancel"
+  },
+  "dlg.chooseShaderFile": {
+    "en": "Shader to add to the chain"
+  },
+  "dlg.chooseShaderFolder": {
+    "en": "A folder with shaders in it"
+  },
+  "dlg.delete": {
+    "en": "Delete"
+  },
+  "dlg.deleteProfile.body": {
+    "en": "This cannot be undone."
+  },
+  "dlg.deleteProfile.title": {
+    "args": [
+      "String"
+    ],
+    "en": "Delete the profile \"%1$@\"?"
+  },
+  "dlg.exists.body": {
+    "en": "Overwrite it?"
+  },
+  "dlg.exists.title": {
+    "args": [
+      "String"
+    ],
+    "en": "\"%1$@\" already exists"
+  },
+  "dlg.loginItemFailed": {
+    "en": "Could not change the login item"
+  },
+  "dlg.ok": {
+    "en": "OK"
+  },
+  "dlg.overwrite": {
+    "en": "Overwrite"
+  },
+  "dlg.profileApplyFailed": {
+    "en": "Could not apply the profile"
+  },
+  "dlg.profileSaveFailed": {
+    "en": "Could not write the profile"
+  },
+  "dlg.save": {
+    "en": "Save"
+  },
+  "dlg.saveProfile.body": {
+    "en": "Saves the current chain, knob values and run options under a name."
+  },
+  "dlg.saveProfile.title": {
+    "en": "Save as a profile"
+  },
+  "knob.err.noPass": {
+    "args": [
+      "Int",
+      "Int"
+    ],
+    "en": "no pass %1$d in the chain (%2$d now)",
+    "note": "When the chain slot number is out of range."
+  },
+  "log.allowMultipleNoSocket": {
+    "en": "--allow-multiple: not opening the control socket (it belongs to the running instance)"
+  },
+  "log.applied": {
+    "args": [
+      "String",
+      "String"
+    ],
+    "en": "applied: %1$@ [redraw %2$@]"
+  },
+  "log.appliedKnobs": {
+    "args": [
+      "Int"
+    ],
+    "en": " — %1$d knob(s)"
+  },
+  "log.applyFailed": {
+    "args": [
+      "String"
+    ],
+    "en": "could not apply the shader:\n%1$@"
+  },
+  "log.captureFailed": {
+    "args": [
+      "String",
+      "String"
+    ],
+    "en": "%1$@ capture failed: %2$@"
+  },
+  "log.captureStalled": {
+    "args": [
+      "String"
+    ],
+    "en": "capture stopped: %1$@"
+  },
+  "log.controlSocketFailed": {
+    "args": [
+      "String"
+    ],
+    "en": "could not open the control socket: %1$@"
+  },
+  "log.feedbackNo": {
+    "en": "→ no feedback. the overlay is excluded from capture."
+  },
+  "log.feedbackNoSamples": {
+    "en": "→ no samples."
+  },
+  "log.feedbackYes": {
+    "en": "→ feedback is running. the overlay is not excluded from capture."
+  },
+  "log.firstFrame": {
+    "args": [
+      "String",
+      "Int",
+      "Int"
+    ],
+    "en": "%1$@ first frame %2$dx%3$d"
+  },
+  "log.frames": {
+    "args": [
+      "Int",
+      "Double",
+      "Double"
+    ],
+    "en": "%1$d frames / %2$.1fs = %3$.1f fps"
+  },
+  "log.knobsDemoted": {
+    "args": [
+      "String",
+      "String"
+    ],
+    "en": "%1$@: knobs folded — %2$@"
+  },
+  "log.needPermission": {
+    "en": "Screen Recording permission is required. System Settings → Privacy & Security → Screen Recording."
+  },
+  "log.noRendererFor": {
+    "args": [
+      "String"
+    ],
+    "en": "%1$@: could not create the renderer"
+  },
+  "log.probe": {
+    "args": [
+      "Double",
+      "Int"
+    ],
+    "en": "marker read-back %1$.1f%% (%2$d samples)"
+  },
+  "log.redrawAuto": {
+    "en": " · auto"
+  },
+  "login.err.bootstrap": {
+    "args": [
+      "String"
+    ],
+    "en": "launchctl bootstrap failed: %1$@"
+  },
+  "login.err.managedByNix": {
+    "args": [
+      "String"
+    ],
+    "en": "%1$@ is managed by Nix. Turn it on and off there."
+  },
+  "login.err.managedElsewhere": {
+    "args": [
+      "String"
+    ],
+    "en": "%1$@ already does the same thing."
+  },
+  "login.err.removeAgent": {
+    "args": [
+      "String"
+    ],
+    "en": "could not remove the agent: %1$@"
+  },
+  "login.err.writeAgent": {
+    "args": [
+      "String"
+    ],
+    "en": "could not write the agent: %1$@"
+  },
+  "menu.addFolder": {
+    "en": "Add a folder…"
+  },
+  "menu.addShader": {
+    "en": "Add a shader"
+  },
+  "menu.capturable": {
+    "en": "Include in screenshots and recordings"
+  },
+  "menu.capturable.tip": {
+    "en": "On, the shader appears in screenshots. In exchange another capture tool can feed our output back."
+  },
+  "menu.chain": {
+    "en": "Chain"
+  },
+  "menu.chain.disable": {
+    "en": "Turn this pass off"
+  },
+  "menu.chain.enable": {
+    "en": "Turn this pass on"
+  },
+  "menu.chain.moveDown": {
+    "en": "Move down"
+  },
+  "menu.chain.moveUp": {
+    "en": "Move up"
+  },
+  "menu.chain.remove": {
+    "en": "Remove from the chain"
+  },
+  "menu.chooseOtherFile": {
+    "en": "Choose another file…"
+  },
+  "menu.clearChain": {
+    "en": "Clear the chain"
+  },
+  "menu.copyFix": {
+    "en": "Copy the fix"
+  },
+  "menu.deleteProfile": {
+    "en": "Delete a profile"
+  },
+  "menu.dir.count": {
+    "args": [
+      "String",
+      "Int"
+    ],
+    "en": "%1$@  (%2$d)"
+  },
+  "menu.dir.missing": {
+    "args": [
+      "String"
+    ],
+    "en": "%1$@  (missing)"
+  },
+  "menu.empty": {
+    "en": "empty"
+  },
+  "menu.fps": {
+    "en": "Frame cap"
+  },
+  "menu.fps.native": {
+    "en": "Display refresh rate"
+  },
+  "menu.fps.tip": {
+    "en": "The cap for capture and render. Lower it to save battery."
+  },
+  "menu.hotReload": {
+    "en": "Watch files for saves"
+  },
+  "menu.hotReload.tip": {
+    "en": "Re-read a file in the chain when it changes."
+  },
+  "menu.knobPromotion": {
+    "en": "Knob promotion"
+  },
+  "menu.knobPromotion.tip": {
+    "en": "Promotes #define with an @range comment to a uniform so you can move it live. Measured cost is zero."
+  },
+  "menu.knobs": {
+    "en": "Knobs"
+  },
+  "menu.knobsDisabled": {
+    "en": "knob promotion is off"
+  },
+  "menu.knobsFolded": {
+    "en": "knobs folded"
+  },
+  "menu.language": {
+    "en": "Language"
+  },
+  "menu.language.system": {
+    "en": "System"
+  },
+  "menu.language.tip": {
+    "en": "The menu changes right away. Lines already printed to the log stay in the language they were written in."
+  },
+  "menu.loginItem": {
+    "en": "Start at login"
+  },
+  "menu.loginItem.managed": {
+    "args": [
+      "String"
+    ],
+    "en": "Start at login — managed by %1$@"
+  },
+  "menu.loginItem.managed.tip": {
+    "args": [
+      "String"
+    ],
+    "en": "%1$@\nIt cannot be changed here. Turn it on and off where it is declared."
+  },
+  "menu.mayBeDenied": {
+    "en": "it can be denied even when the box is checked"
+  },
+  "menu.mayBeDenied.tip": {
+    "args": [
+      "String"
+    ],
+    "en": "This app is ad-hoc signed, so rebuilding changes the signature. TCC ties the grant to the old one, so the entry stays and only the access is denied.\n\n  tccutil reset ScreenCapture %1$@\n\nthen start it again and allow. Running tools/make-signing-cert.sh once removes this round trip."
+  },
+  "menu.newProfile": {
+    "en": "New profile"
+  },
+  "menu.noFolders": {
+    "en": "no folders"
+  },
+  "menu.noProfiles": {
+    "en": "no saved profiles"
+  },
+  "menu.noRangedDefines": {
+    "en": "no #define carries an @range"
+  },
+  "menu.noShaders": {
+    "en": "no shader"
+  },
+  "menu.openInFinder": {
+    "en": "Open in Finder"
+  },
+  "menu.openProfileFolder": {
+    "en": "Open the profile folder"
+  },
+  "menu.openScreenSettings": {
+    "en": "Open Screen Recording settings"
+  },
+  "menu.overwriteProfile": {
+    "args": [
+      "String"
+    ],
+    "en": "Overwrite \"%1$@\""
+  },
+  "menu.profiles": {
+    "en": "Profiles"
+  },
+  "menu.quit": {
+    "en": "Quit"
+  },
+  "menu.redraw": {
+    "en": "Redraw"
+  },
+  "menu.redraw.always": {
+    "en": "Always"
+  },
+  "menu.redraw.auto": {
+    "en": "Auto (the shader decides)"
+  },
+  "menu.redraw.never": {
+    "en": "Never"
+  },
+  "menu.redraw.tip": {
+    "en": "Auto looks at whether the shader reads time. The battery cost only applies when it is on."
+  },
+  "menu.reload": {
+    "en": "Reload"
+  },
+  "menu.removeFromList": {
+    "en": "Remove from the list"
+  },
+  "menu.resetAll": {
+    "en": "Everything back to file values"
+  },
+  "menu.resetPass": {
+    "en": "This pass back to file values"
+  },
+  "menu.revealInFinder": {
+    "en": "Show in Finder"
+  },
+  "menu.saveProfileAs": {
+    "en": "Save the current one as a profile…"
+  },
+  "menu.scale": {
+    "en": "Resolution scale"
+  },
+  "menu.scale.one": {
+    "en": "1.0 (as is)"
+  },
+  "menu.scale.tip": {
+    "en": "The first knob to reach for when frames run short. Pixel count falls with the square of the scale."
+  },
+  "menu.settings": {
+    "en": "Settings"
+  },
+  "menu.shaderDirEmpty": {
+    "en": "the shader folder is empty"
+  },
+  "menu.shaderDirHint": {
+    "en": "add one under Settings → Shader folders"
+  },
+  "menu.shaderFolders": {
+    "en": "Shader folders"
+  },
+  "menu.shaderOff": {
+    "en": "Turn the shader off"
+  },
+  "menu.shaderOn": {
+    "en": "Turn the shader on"
+  },
+  "menu.showConfigFile": {
+    "en": "Show the settings file"
+  },
+  "menu.spaceFix": {
+    "en": "Space-switch ghosting"
+  },
+  "menu.spaceFix.freeze": {
+    "en": "Hold the last frame"
+  },
+  "menu.spaceFix.hide": {
+    "en": "Hide briefly"
+  },
+  "menu.spaceFix.off": {
+    "en": "Leave it"
+  },
+  "menu.spaceFix.tip": {
+    "en": "What to do when capture hands over a stale frame right after a switch."
+  },
+  "menu.title.noShader": {
+    "en": "no shader"
+  },
+  "menu.title.off": {
+    "args": [
+      "String"
+    ],
+    "en": "off — %1$@"
+  },
+  "menu.title.passCount": {
+    "args": [
+      "Int"
+    ],
+    "en": "%1$d passes"
+  },
+  "menu.title.passthrough": {
+    "en": "no shader (passthrough)"
+  },
+  "menu.turnOn": {
+    "en": "Turn it on"
+  },
+  "profile.err.cannotRead": {
+    "args": [
+      "String"
+    ],
+    "en": "could not read the profile: %1$@"
+  },
+  "renderer.err.noPipeline": {
+    "en": "could not find main0, or could not build the pipeline"
+  },
+  "renderer.stage.chainPass": {
+    "args": [
+      "Int"
+    ],
+    "en": "chain pass %1$d"
+  },
+  "renderer.stage.pipeline": {
+    "en": "MSL → pipeline"
+  },
+  "shader.demoted": {
+    "args": [
+      "String"
+    ],
+    "en": "promoting knobs breaks compilation; loaded without them.\n%1$@"
+  },
+  "shader.err.toolMissing": {
+    "args": [
+      "String"
+    ],
+    "en": "%1$@ not found. Install it and build again:\n    brew install glslang spirv-cross\n    nix shell nixpkgs#glslang nixpkgs#spirv-cross -c ./build.sh",
+    "note": "When a tool was not found. All three routes are given — there is no telling whether\nHomebrew or nix is in use."
+  },
+  "status.bypassed": {
+    "en": "passthrough (turned off)"
+  },
+  "status.compileFailed": {
+    "en": "passthrough (compile failed)"
+  },
+  "status.diag": {
+    "en": "feedback diagnostic"
+  },
+  "status.noShader": {
+    "en": "passthrough (no shader)"
+  },
+  "status.preparing": {
+    "en": "starting"
+  },
+  "word.nix": {
+    "en": "Nix"
+  },
+  "word.none": {
+    "en": "(none)"
+  },
+  "word.off": {
+    "en": "off"
+  },
+  "word.on": {
+    "en": "on"
+  }
+}

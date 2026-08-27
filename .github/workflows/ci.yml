@@ -1,0 +1,94 @@
+name: ci
+
+# What this workflow actually guarantees is three things.
+#
+#   1. It builds off the author's machine (without nix, through Homebrew)
+#   2. Every shader translates all the way through to a pipeline
+#   3. The translation table has no holes
+#
+# The second is the cheapest regression defence in this repo. --check runs with no window
+# and no Screen Recording permission, so it works as is in CI, and it really does go
+# GLSL → SPIR-V → MSL → pipeline. It removes the situation where a broken shader has to
+# be noticed by looking at the screen.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: glslang · spirv-cross
+        run: brew install glslang spirv-cross
+
+      # Running without nix is the point, so nix is not installed here. build.sh's nix
+      # fallback is untouched, but this runner has no nix, so it takes the Homebrew route.
+      - name: build (universal)
+        run: GS_ARCHS="arm64 x86_64" GS_BUILD_NUMBER="${{ github.run_number }}" ./build.sh
+
+      - name: both architectures present
+        run: |
+          got="$(lipo -archs build/GlobalShader.app/Contents/MacOS/global-shader)"
+          echo "architectures: $got"
+          for want in arm64 x86_64; do
+            case " $got " in *" $want "*) ;; *) echo "$want is missing" >&2; exit 1 ;; esac
+          done
+
+      - name: version comes from one place
+        run: |
+          want="$(tr -d '[:space:]' < VERSION)"
+          plist="$(plutil -extract CFBundleShortVersionString raw -o - \
+                   build/GlobalShader.app/Contents/Info.plist)"
+          said="$(./build/global-shader --version | awk '{print $2}')"
+          echo "VERSION=$want  plist=$plist  --version=$said"
+          [ "$want" = "$plist" ] && [ "$want" = "$said" ]
+
+      - name: --check every shader
+        run: |
+          fail=0
+          for f in shaders/*/*.frag shaders/*/*.glsl; do
+            if ./build/global-shader --check "$f" >/dev/null 2>&1; then
+              echo "ok    $f"
+            else
+              echo "FAIL  $f"
+              ./build/global-shader --check "$f" || true
+              fail=1
+            fi
+          done
+          exit $fail
+
+      # Running slot by slot and running them chained are different routes. A chain
+      # ping-pongs offscreen targets and builds a separate pipeline per pass.
+      - name: --check a chain
+        run: ./build/global-shader --check shaders/crt/crt.frag shaders/crt/glow.glsl
+
+      - name: both languages come out
+        run: |
+          ./build/global-shader --lang en --help | head -1
+          ./build/global-shader --lang ko --help | head -1
+          ./build/global-shader --lang en --help | grep -q "fragment shader"
+          ./build/global-shader --lang ko --help | grep -q "프래그먼트 셰이더"
+
+      # Check that a missing translation **really does** stop the build. Without this, the
+      # check in gen-strings.swift could go quietly toothless and nobody would know.
+      - name: a missing translation stops the build
+        run: |
+          cp i18n/ko.json /tmp/ko.bak
+          python3 - <<'PY'
+          import json
+          d = json.load(open('i18n/ko.json'))
+          del d[sorted(d)[0]]
+          json.dump(d, open('i18n/ko.json', 'w'), ensure_ascii=False)
+          PY
+          if swift tools/gen-strings.swift i18n /tmp/out.swift; then
+            echo "the generator passed with a translation missing" >&2
+            cp /tmp/ko.bak i18n/ko.json
+            exit 1
+          fi
+          echo "caught the missing key"
+          cp /tmp/ko.bak i18n/ko.json

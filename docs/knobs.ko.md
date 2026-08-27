@@ -1,0 +1,217 @@
+# 손잡이와 재그리기
+
+*[← README](../README.ko.md)  ·  [English](knobs.md)*
+
+## 손잡이 — 셰이더 값을 실시간으로
+
+`@min..max` 주석이 붙은 `#define` 은 **기본으로** 유니폼으로 승격된다. 그러면
+재번역도 재컴파일도 없이 소켓으로 값만 밀 수 있다.
+
+```sh
+global-shader shaders/crt/crt.frag &
+global-shader --set CURVE 0.22      # 다음 프레임에 반영
+global-shader --get                 # 전부 JSON 으로
+global-shader --reset CURVE         # 파일의 값으로
+```
+
+메뉴 막대의 `손잡이` 에 같은 것이 슬라이더로 들어 있다. 셰이더 값은 숫자를 알고
+고르는 게 아니라 화면을 보고 멈추는 것이라, 왕복이 짧은 쪽이 이긴다. `@0..1:0.01`
+처럼 눈금이 선언돼 있으면 슬라이더도 그 칸으로만 선다 — "이보다 잘게 나눠 봐야
+안 보인다"는 저자의 판단을 그대로 쓴다.
+
+### 정지 화면에서 슬라이더가 안 듣던 것
+
+재그리기가 꺼진 셰이더(`crt.frag` 처럼 시간을 안 읽는 것)는 화면에 변화가 있을
+때만 프레임이 온다. 그 상태에서 값을 바꾸면 **아무 일도 안 일어난다** — 값은
+바뀌었는데 그릴 계기가 없어서다. 사람 눈에는 슬라이더가 고장 난 것과 구별되지
+않는다. 그래서 값이 바뀌면 마지막 프레임을 한 장 다시 흘린다.
+
+### 체인에서는 이름 앞에 칸 번호를 붙인다
+
+셰이더 둘을 겹치면 이름이 겹친다. `crt.frag` 와 `glow.glsl` 은 둘 다 `BLOOM` ·
+`SCAN_PX` · `BRIGHTNESS` 를 선언하는데, 각자 혼자 걸릴 것을 전제로 쓰인 파일이라
+이상한 일이 아니라 오히려 흔하다. 이름 하나에 값 하나를 두면 슬라이더 하나가 두
+셰이더를 같이 밀게 되고, 그건 고칠 수 없는 종류의 혼동이다.
+
+```sh
+global-shader --set 2.BLOOM 0.9     # 2번 칸(glow.glsl)의 BLOOM
+global-shader --set CURVE 0.24      # 하나뿐이면 이름만으로도 된다
+global-shader --set BLOOM 0.9
+  err 이름이 겹친다 — 패스 번호를 붙여라: 1.BLOOM (crt.frag), 2.BLOOM (glow.glsl)
+```
+
+`--get` 은 원래 있던 `name` · `value` · `min` · `max` 를 그대로 두고 `id`("2.BLOOM") ·
+`pass` · `shader` 를 **덧붙인다.** 그것만 읽던 쪽은 고치지 않아도 계속 돈다.
+
+규약은 이 레포가 만든 게 아니다. 저자가 리눅스 쪽에서 셰이더 값을 실시간으로
+밀 때 쓰던 표기를 그대로 가져왔다. **셰이더 파일은 한 글자도 안 고친다** —
+리눅스에서는 그대로 `#define` 으로 남는다. `crt.frag` 의 경우 30 개가 그대로 손잡이가 된다:
+
+```
+CURVE VIGNETTE FOCUS FOCUS_NEAR FOCUS_RADIUS ABERRATION
+BLOOM BLOOM_PX BLOOM_CUT BLOOM_KNEE BLOOM_KEEP
+SCAN_PX SCAN_DEPTH GRILLE CONTRAST BRIGHTNESS
+ANIM_SPEED GRAIN GRAIN_HZ
+HUM HUM_LIFT HUM_GLOW HUM_WIDTH HUM_SPEED
+RIPPLE_SEC RIPPLE_MAX RIPPLE_W RIPPLE_GAIN RIPPLE_LIFT RIPPLE_GLOW
+```
+
+표시가 없는 `TAU` `EDGE_SOFT` `BLOOM_TAPS` `GRILLE_PX` `GRAIN_PX` `GRAIN_ADD`
+`GRAIN_MUL` `RIPPLE_TAPS` `TINT` 는 안 건드린다.
+`BLOOM_TAPS` 처럼 상수여야 하는 것과 `TINT` 처럼 `vec3` 인 것이 저절로 걸러지는데,
+저자가 애초에 "슬라이더로 만질 값"에만 `@` 를 달아 뒀기 때문이다.
+
+### 승격이 안 되는 셰이더는 알아서 접는다
+
+승격은 상수를 유니폼으로 바꾸는 일이라, 그 값이 **상수여야만 하는 자리**에
+쓰이면 컴파일이 통째로 실패한다:
+
+```glsl
+#define TAPS 8   // @1..16
+float w[TAPS];   → ERROR: array size must be a constant integer expression
+```
+
+이럴 때는 승격 없이 한 번 더 번역해서 그대로 건다. 그 셰이더는 손잡이만 없을 뿐
+전과 똑같이 돈다. 기본을 켜면서도 회귀가 없는 이유가 이 폴백이다 — 없으면
+어제까지 잘 돌던 셰이더가 오늘 통과 셰이더로 떨어진다.
+
+`--check` 가 접었는지 알려주고, `--set` 도 성공한 척하지 않고 이유를 돌려준다.
+정말 끄고 싶으면 `--no-knobs`.
+
+`--get` 은 `!motion` 이 붙어 있었는지를 `motion` 으로 같이 준다. 슬라이더를
+내리면 배터리가 줄어드는 손잡이인지를 UI 가 알 수 있어야 하기 때문이다.
+
+`--get` 은 `#define` **바로 위에 붙어 있던 주석 덩어리**를 `doc` 으로 같이 준다.
+이 레포의 셰이더는 값마다 왜 그 값인지를 이미 적어 두고 있어서, 슬라이더 설명을
+따로 쓸 것이 없다.
+
+### 왜 하이프랜드에서는 이게 안 됐나
+
+하이프랜드의 스크린 셰이더가 받는 유니폼 목록은 컴포지터가 정하고 거기에 우리 것을 못 끼운다. 그래서 값을 바꾸려면 `#define` 을
+고쳐 쓰고 셰이더를 다시 거는 수밖에 없었고, 슬라이더를 끄는 동안 그 왕복을 초당
+여러 번 하게 되니 부르는 쪽에서 디바운스를 걸어야 했다.
+
+**그 제약은 하이프랜드 것이지 macOS 것이 아니다.** 여기서는 유니폼 목록을 우리가
+정한다. 파일 재작성도, 재번역도, 디바운스도 없다.
+
+## 계속 그릴지는 셰이더가 정한다
+
+셰이더가 시간을 읽으면 화면이 안 바뀌어도 계속 그려야 흐른다. 안 읽으면 안 그리는
+게 맞다. 이 판단이 `--redraw auto`(기본)이고, 하이프랜드에서 `debug:vfr` 을 끌지
+말지를 가르던 것과 같은 기준이다.
+
+```
+crt/crt.frag           켬    0 으로 두면 끈다: GRAIN HUM* RIPPLE_GAIN/LIFT/GLOW
+crt/glow.glsl          끔
+water/still.frag       켬    0 으로 두면 끈다: SPEED CLICK
+water/river.frag       켬    0 으로 두면 끈다: FLOW
+water/ocean.frag       켬    0 으로 두면 끈다: SPEED
+cyberpunk/neon.frag    끔
+cyberpunk/glitch.frag  켬    0 으로 두면 끈다: DENSITY
+print/paper.frag       끔
+```
+
+오른쪽 칸이 아래 `!motion` 이다. **끔인 넷은 애초에 `time` 을 안 읽는 것들이고**,
+켬인 것들은 표시된 손잡이를 0 으로 내리면 그 자리에서 끔이 된다.
+
+물 셋은 셋 다 켬으로 갈린다. **여기에는 선택지가 없다** — 안 움직이면 물이 아니다.
+`crt.frag` 이 정지 화면에서 공짜였던 것은 그 셰이더에 흐르는 것이 없었기 때문이지
+자동 판정이 잘해 준 것이 아니다.
+
+**체인에서는 한 칸이라도 켬이면 전체가 켬이다.** 시간을 읽는 칸이 안 흐르면
+그 칸만 멈추는 게 아니라 고장으로 보이기 때문이고, 그래서 이 판정은 겹쳐 쓸 때
+**파일을 고르는 일** 이 된다:
+
+```
+crt/glow.glsl → cyberpunk/neon.frag         [재그리기 끔]   정지 화면 공짜
+crt/glow.glsl → neon.frag → glitch.frag     [재그리기 켬]   깜빡임을 얻고 값을 치른다
+```
+
+`neon.frag` 에 깜빡임을 안 넣은 것이 이 표 때문이다(그 파일 머리말 참고).
+넣었으면 위 첫 줄이 없어진다.
+
+**주석을 먼저 걷는 것이 핵심이다.** 이 레포의 셰이더는 왜 그 값인지를 주석에 길게
+적어 두고 그 안에서 `time` 을 자주 언급한다:
+
+```
+glow.glsl   '\btime\b'  주석 포함 2회 → 코드만 0회
+crt.frag    '\btime\b'  주석 포함 10회 → 코드만 2회
+```
+
+안 걷으면 `glow.glsl` 이 오판돼서, 흐르는 것이 하나도 없는데 정지 화면에서 배터리를
+쓴다. 걷으면 0 대 2 로 깨끗하게 갈린다.
+
+오판의 방향은 안전한 쪽이다 — 틀리면 배터리를 더 쓰지 화면이 멈추지는 않는다.
+셰이더를 고쳐 저장하면 판단도 다시 한다. `--redraw always` / `never` 로 덮어쓴다.
+
+## 손잡이가 시간을 여닫는다 — `!motion`
+
+**"시간을 읽는다"와 "지금 흐른다"는 다르다.** 위 판정은 소스만 봐서 둘을 못 가른다.
+그게 문제가 안 되던 것은 흐르는 갈래와 안 흐르는 갈래가 파일 두 장으로 나뉘어
+있었기 때문이다 — `crt.frag` 과 `crt-motion.frag` 이 그랬다.
+
+그 둘을 한 장으로 합치면서([셰이더](shaders.ko.md)) 판정이 모자라게 됐다. 합친 파일은 그레인을
+0 으로 둬도 소스에 `time` 이 남아 있으니 늘 켬이 되고, 그러면 **합치는 것 자체가
+회귀가 된다** — 손잡이로 끌 수는 있는데 배터리는 계속 나가는 상태다.
+
+그래서 셰이더가 선언한다. `@범위` 옆에 `!motion` 을 달면 "이 값이 0 이면 이
+손잡이가 맡은 움직임은 멈춘다"는 뜻이고, **표시된 것이 전부 0 이면 재그리기를 끈다.**
+
+```glsl
+#define GRAIN     0.030   // @0..0.15 !motion
+#define HUM       0.04    // @0..0.3 !motion  띠 안에서 밝은 픽셀이 더 밝아지는 비율
+#define GRAIN_HZ  40.0    // @5..60           ← 표시 없음. 속도지 스위치가 아니다
+```
+
+```sh
+global-shader --set GRAIN 0     # 이 순간부터 정지 화면에서 안 그린다
+global-shader --set GRAIN 0.03  # 따라 켜진다
+```
+
+값이 바뀔 때마다 다시 판단한다. 표시를 첫 번역 때 한 번만 읽으면 슬라이더를
+내려도 배터리가 계속 나가고, 그건 화면에 안 보이는 종류의 고장이다.
+
+실제로 갈리는지 확인한 것:
+
+```
+crt.frag 기본값                      redraw = true
+crt.frag 흐르는 손잡이 전부 0        redraw = false
+crt.frag GRAIN 만 되살림             redraw = true
+water/still.frag 기본값               redraw = true
+print/riso.frag (time 을 안 읽음)     redraw = false
+crt.frag(0) → water/still.frag        redraw = true    ← 뒷칸이 흐른다
+crt.frag(0) → print/riso.frag         redraw = false
+```
+
+(선언이 없는 셰이더는 예전 그대로 소스만 보고 판단한다. 확인할 때 `still.frag`
+에는 아직 표시가 없었고, 지금은 `SPEED`·`CLICK` 에 붙어 있다. `riso.frag` 도
+그 뒤에 지워졌다 — 이 표는 **그때 실제로 잰 것**이라 이름을 바꿔 적지 않았다.
+같은 자리를 지금 확인하려면 `print/paper.frag` 이 대신한다. 그쪽도 `time` 을
+안 읽는다.)
+
+`--status` 가 `redraw` 와 `redrawMode` 를 돌려준다. **fps 로는 이걸 못 읽는다** —
+화면이 바뀌면 재그리기가 꺼져 있어도 프레임이 오고, `fps` 는 띄운 뒤 전체의
+평균이라 방금 꺼진 것이 안 나타난다. `--check` 도 어느 손잡이를 0 으로 두면
+끄는지 알려 준다.
+
+### 표시를 안 다는 것들
+
+`ANIM_SPEED` 는 표시가 없다. 0 으로 둬도 그레인 무늬와 험 바는 그 자리에 그대로
+있고(멈춘 것이지 없어진 게 아니다), 클릭 리플은 실제 초로 도니까 계속 움직인다 —
+"아무것도 안 움직인다"의 조건이 아니다.
+
+반대로 `GRAIN` 이 0 이 아닌데 `ANIM_SPEED` 가 0 이면 실제로는 안 움직이는데
+켬으로 판정한다. 오판의 방향이 안전한 쪽이라 그대로 둔다.
+
+### 승격이 접힌 셰이더
+
+표시를 읽을 수가 없으므로 예전처럼 소스만 보고 판단한다. 그게 맞다 — 승격이
+없으면 값이 파일에 박힌 상수 그대로라 우리가 아는 것이 없고, 모를 때는 켜는 쪽이
+안전하다.
+
+### 리눅스에서는
+
+`!motion` 은 그냥 주석이다. 하이프랜드는 `time` 을 쓰는 셰이더에 대해
+`debug:vfr = false` 를 요구하므로, 값을 0 으로 둔 것과 무관하게 VFR 은 꺼 둬야
+한다. 그건 컴포지터의 판단이지 셰이더가 어쩔 수 있는 것이 아니다.
+**파일은 여전히 한 글자도 안 고친다.**
