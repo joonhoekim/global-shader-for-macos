@@ -3,7 +3,7 @@
 # build.sh — bundles Sources/*.swift into GlobalShader.app.
 #
 # Why swiftc in a script rather than an Xcode project: this app is a handful of source
-# files and no resources. What it does need is three things a bare compile cannot do.
+# files and one image. What it does need is four things a bare compile cannot do.
 #
 #   1. Make a .app bundle. TCC (Screen Recording permission) attaches the grant to a code
 #      signing identity, not to a process. Running the bare binary from a terminal
@@ -18,6 +18,10 @@
 #
 #   3. Move i18n/*.json into Sources/Strings.swift. A missing translation dies here —
 #      see the header of tools/gen-strings.swift.
+#
+#   4. Compose the app icon. Resources/icon.png is a single full-bleed square; an .icns
+#      wants it masked into the system's icon shape at ten sizes, and the reasons that is
+#      a compose rather than a copy are in the header of tools/make-icon.swift.
 #
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -103,6 +107,21 @@ EOF
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
+# The icon. Cached in build/ rather than composed straight into the bundle, because the
+# rm -rf above takes the bundle with it on every single build and this costs about a
+# second — which is a second added to the shader edit / rebuild loop, for a file that
+# changes roughly never. The two inputs are the artwork and the script that composes it;
+# deleting the .icns forces it either way.
+ICNS="build/AppIcon.icns"
+if [ ! -f "$ICNS" ] || [ Resources/icon.png -nt "$ICNS" ] || [ tools/make-icon.swift -nt "$ICNS" ]; then
+    swift tools/make-icon.swift Resources/icon.png build/AppIcon.iconset
+    iconutil -c icns build/AppIcon.iconset -o "$ICNS"
+    rm -rf build/AppIcon.iconset
+else
+    echo "icon         cached"
+fi
+cp "$ICNS" "$APP/Contents/Resources/AppIcon.icns"
+
 cat > "$APP/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -111,6 +130,12 @@ cat > "$APP/Contents/Info.plist" <<EOF
   <key>CFBundleExecutable</key><string>global-shader</string>
   <key>CFBundleIdentifier</key><string>$BUNDLE_ID</string>
   <key>CFBundleName</key><string>GlobalShader</string>
+  <!-- Names Contents/Resources/AppIcon.icns, extension omitted — the key predates
+       extensions being expected. LSUIElement below means this never reaches the Dock;
+       where it does show is Finder, Spotlight, Login Items, and the list in System
+       Settings → Privacy & Security → Screen Recording, which is the one place a user
+       has to pick this app out by sight. -->
+  <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>$VERSION</string>
   <key>CFBundleVersion</key><string>$BUILD_NUMBER</string>

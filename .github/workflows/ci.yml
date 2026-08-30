@@ -48,6 +48,27 @@ jobs:
           echo "VERSION=$want  plist=$plist  --version=$said"
           [ "$want" = "$plist" ] && [ "$want" = "$said" ]
 
+      # A file called AppIcon.icns existing proves very little. Round-tripping it back
+      # through iconutil is what shows it is a readable .icns carrying every slot — the
+      # failure otherwise is a blurry Spotlight result nobody traces back to here.
+      - name: the icon is in the bundle, with every slot
+        run: |
+          app=build/GlobalShader.app
+          plutil -extract CFBundleIconFile raw -o - "$app/Contents/Info.plist"
+          # iconutil insists the output directory be named *.iconset, not just be one.
+          iconutil -c iconset "$app/Contents/Resources/AppIcon.icns" -o "$RUNNER_TEMP/x.iconset"
+          missing=0
+          for s in 16x16 16x16@2x 32x32 32x32@2x 128x128 128x128@2x \
+                   256x256 256x256@2x 512x512 512x512@2x; do
+            if [ -f "$RUNNER_TEMP/x.iconset/icon_$s.png" ]; then
+              echo "ok    icon_$s.png"
+            else
+              echo "FAIL  icon_$s.png"
+              missing=1
+            fi
+          done
+          exit $missing
+
       - name: --check every shader
         run: |
           fail=0
@@ -149,6 +170,10 @@ jobs:
           test -d "$p/GlobalShader.app"
           test -x "$(brew --prefix)/bin/global-shader"
           test -f "$p/share/global-shader/shaders/crt/crt.frag"
+          # Composing the icon runs a swift script inside Homebrew's sandbox, which has no
+          # window server session. That is why make-icon.swift stays on CoreGraphics, and
+          # this is the line that would catch it if that ever stopped being enough.
+          test -f "$p/GlobalShader.app/Contents/Resources/AppIcon.icns"
           plutil -extract CFBundleIdentifier raw -o - "$p/GlobalShader.app/Contents/Info.plist"
           codesign -d -r- "$p/GlobalShader.app" 2>&1 | sed -n 's/^#* *designated => /requirement  /p'
 
