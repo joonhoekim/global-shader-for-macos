@@ -121,6 +121,10 @@ jobs:
   # Homebrew build it in its sandbox. That is the only place the parts a formula adds get
   # exercised — the baked opt/ tool paths, the .app landing in the prefix, the symlink in
   # bin, `brew test` — and none of them are visible from ./build.sh passing.
+  #
+  # CONTRIBUTING.md has this same sequence to run by hand. A nix-managed Homebrew cannot
+  # run the `brew style` and `brew test` halves at all; tools/brew-nix.sh is the way
+  # around that, and is for local use only — this runner has stock Homebrew.
   formula:
     runs-on: macos-latest
     steps:

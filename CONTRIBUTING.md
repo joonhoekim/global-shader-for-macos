@@ -131,6 +131,63 @@ a slider tooltip.
 - No Xcode project. `build.sh` is `swiftc` plus a bundle, and keeping it that
   simple is deliberate.
 
+## The formula
+
+CI's second job installs `Formula/global-shader.rb` the way somebody else would:
+a throwaway tap, a tarball of the checkout, and Homebrew's own sandbox. That is
+the only place the parts a formula adds get exercised — the baked `opt/` tool
+paths, the `.app` landing in the prefix, the `bin` symlink, `brew test` — and
+none of them are visible from `./build.sh` passing. Locally:
+
+```sh
+# The formula file on its own. No tap needed, and this is the file that gets
+# committed. (CI runs `brew style gs-ci/local`, over the whole tap — which also
+# lints the workflow files `tap-new` generates and so drags in actionlint. On a
+# runner that is free; locally it is a detour with nothing at the end of it.)
+brew style Formula/global-shader.rb
+
+brew tap-new gs-ci/local --no-git
+cp Formula/global-shader.rb "$(brew --repo gs-ci/local)/Formula/"
+brew trust --formula gs-ci/local/global-shader
+
+# The committed formula is head-only, and a head build clones main — which is not
+# the code you are testing. Point a copy at a tarball of this checkout instead.
+v="$(tr -d '[:space:]' < VERSION)"
+ref="$(git stash create)"                       # empty on a clean tree
+git archive --format=tar.gz --prefix="global-shader-$v/" \
+            -o "/tmp/global-shader-$v.tar.gz" "${ref:-HEAD}"
+./tools/update-formula.sh "file:///tmp/global-shader-$v.tar.gz" \
+                          "$(brew --repo gs-ci/local)/Formula/global-shader.rb"
+
+brew install --build-from-source gs-ci/local/global-shader
+brew test gs-ci/local/global-shader
+brew uninstall global-shader && brew untap gs-ci/local
+```
+
+The tarball's file name is not decoration: Homebrew reads the version out of it
+and rejects a tarball it cannot read one from.
+
+### If nix owns your Homebrew
+
+`brew style` and `brew test` load Homebrew's vendored gems, which means writing
+inside Homebrew's own checkout. Under nix-homebrew that checkout is a
+`/nix/store` symlink, so both fail and the formula half of CI cannot be run at
+all. Put [`tools/brew-nix.sh`](tools/brew-nix.sh) in front of `brew` for those
+commands — it mirrors the library somewhere writable and leaves the prefix, the
+Cellar and your taps exactly as they are:
+
+```sh
+./tools/brew-nix.sh style Formula/global-shader.rb
+./tools/brew-nix.sh test gs-ci/local/global-shader
+
+shim="$(./tools/brew-nix.sh)"     # or take the path once and use it as brew
+```
+
+The first run mirrors and bundles, about twenty seconds; after that it is as
+fast as `brew`. `brew install` needs none of this — it only writes to the
+Cellar. That script's header explains both ways nix breaks this, including the
+second one, which the error message never mentions.
+
 ## Before opening a PR
 
 ```sh
@@ -141,3 +198,6 @@ for f in shaders/*/*.frag shaders/*/*.glsl; do ./build/global-shader --check "$f
 ```
 
 If you touched anything user-visible, check both languages actually render.
+If you touched `Formula/global-shader.rb`, `build.sh` or anything the formula
+installs, run the formula job above too — `./build.sh` passing says nothing
+about it.
