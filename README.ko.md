@@ -5,12 +5,18 @@
 
 macOS 판 하이프랜드 `decoration:screen_shader`.
 
+<img width="1712" height="1112" alt="터미널 위에 crt.frag 과 glitch.frag 을 이어 건 화면" src="https://github.com/user-attachments/assets/cc65999a-6fe0-4fc9-851b-f59c71c9a51f" />
+
 렌더링이 끝난 화면 한 장에 프래그먼트 셰이더를 한 번 더 건다. 바탕도 메뉴 막대도
 창도 전부 같은 유리 뒤로 들어간다.
+
+<img width="1712" height="1112" alt="같은 셰이더 아래의 브라우저 — 창도 메뉴 막대도 함께 유리 뒤에 있다" src="https://github.com/user-attachments/assets/22e95b24-d0a8-43e2-a8c1-07f78289cbaf" />
 
 ScreenCaptureKit 으로 화면을 찍고, GLSL 을 Metal 로 옮기고, 그 결과를 화면 전체에
 도로 그린다. 목표는 하이프랜드 세션에서 쓰던 `.frag` 을 **한 글자도 안 고치고**
 그대로 돌리는 것이다 — 같은 파일이 리눅스에서도 계속 돈다.
+
+https://github.com/user-attachments/assets/392be833-d9ba-4e9d-a0bc-28d9ed53ef0f
 
 *[English documentation](README.md)*
 
