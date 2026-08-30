@@ -161,11 +161,13 @@ code written in between.** The remaining items barely produce any strings.
       to find the install steps is not documentation
 - [x] Comments, scripts, shader headers, and translator notes in English. Korean stays
       where it is read as Korean: `i18n/ko.json` and the `*.ko.md` documents
-- [ ] A screenshot or a short GIF. Nobody looks at a shader app without one
+- [x] A screenshot or a short GIF. Nobody looks at a shader app without one
       — **only a person can do this.** It has to show the screen actually covered, and
       by default this app does not appear in screenshots (feedback defence). It has to
       be launched with `--capturable` and captured, and that is the job of whoever is
-      sitting at the machine
+      sitting at the machine.
+      Done: `crt.frag` alone, then chained with `glitch.frag`, over a terminal and over a
+      browser. Both READMEs carry the same three pieces of media
 - [x] `CONTRIBUTING.md` — how to add a shader (the two conventions, verifying with `--check`)
 - [x] `plan/` is **not** in `.gitignore` — these documents are committed
 

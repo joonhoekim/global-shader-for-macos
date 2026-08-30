@@ -338,11 +338,15 @@ from the symptom.
 - [x] Then split into `docs/` — architecture · usage · knobs · shaders · performance ·
       permissions · languages · licence, eight topics in two languages. The root README is
       117 lines
-- [ ] **A screenshot or a 3-second GIF** at the top. For a tool that lays glass over the
+- [x] **A screenshot or a 3-second GIF** at the top. For a tool that lays glass over the
       screen, describing it in prose loses on principle. **Only a person can do this** —
       by default the overlay does not appear in screenshots (feedback defence), so it has
       to be launched with `--capturable` and captured. At 117 lines the README now has an
-      obvious place for it
+      obvious place for it.
+      Landed as two stills and a 48 s demo, each placed beside the sentence it shows
+      rather than stacked at the top. They are GitHub attachment URLs, not files in the
+      tree: a `--HEAD` install clones this repo, so media committed here would be
+      downloaded by everyone who installs
 - [x] the install section is currently one `./build.sh` → requirements (macOS 13+,
       glslang, spirv-cross), Screen Recording permission, and that being self-signed it is
       not a distribution

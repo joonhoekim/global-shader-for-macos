@@ -5,14 +5,20 @@
 
 Hyprland's `decoration:screen_shader`, for macOS.
 
+<img width="1712" height="1112" alt="crt.frag chained with glitch.frag, over a terminal" src="https://github.com/user-attachments/assets/cc65999a-6fe0-4fc9-851b-f59c71c9a51f" />
+
 Takes the finished screen — one frame, already composited — and runs a fragment
 shader over it once more. Wallpaper, menu bar, windows: everything goes behind
 the same glass.
+
+<img width="1712" height="1112" alt="The same shader over a browser — the window and the menu bar alike are behind it" src="https://github.com/user-attachments/assets/22e95b24-d0a8-43e2-a8c1-07f78289cbaf" />
 
 It captures the display with ScreenCaptureKit, translates your GLSL to Metal,
 and draws the result back over the whole screen. The point is to run `.frag`
 files written for a Hyprland session **without changing a character of them** —
 the same file keeps working on Linux.
+
+https://github.com/user-attachments/assets/392be833-d9ba-4e9d-a0bc-28d9ed53ef0f
 
 *[한국어 문서](README.ko.md)*
 
