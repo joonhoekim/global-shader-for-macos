@@ -54,7 +54,8 @@ case "$ARG" in
         ;;
 esac
 
-grep -q "stable:begin" "$FORMULA" && grep -q "stable:end" "$FORMULA" || {
+grep -qE "^[[:space:]]*# stable:begin" "$FORMULA" &&
+grep -qE "^[[:space:]]*# stable:end" "$FORMULA" || {
     echo "$FORMULA has no stable:begin / stable:end markers" >&2
     exit 1
 }
@@ -71,9 +72,13 @@ echo "sha256  $SHA"
 
 # Everything between the markers is replaced. The lines that explain "empty until the
 # first tag" go with it, which is correct — they stop being true here.
+# Anchored to the start of the line, not merely containing the word. A comment elsewhere
+# in the formula that *mentions* the marker would otherwise open the region early and
+# everything down to the real end marker — the class declaration included — would be
+# deleted. That happened; `ruby -c` below is what caught it.
 awk -v url="$URL" -v sha="$SHA" '
-    /stable:begin/ { print; print "  url \"" url "\""; print "  sha256 \"" sha "\""; skip = 1; next }
-    /stable:end/   { skip = 0 }
+    /^[ \t]*# stable:begin/ { print; print "  url \"" url "\""; print "  sha256 \"" sha "\""; skip = 1; next }
+    /^[ \t]*# stable:end/   { skip = 0 }
     !skip
 ' "$FORMULA" > "$tmp/out.rb"
 
