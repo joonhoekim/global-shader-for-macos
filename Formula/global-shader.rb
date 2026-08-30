@@ -3,7 +3,7 @@
 #   brew tap joonhoekim/global-shader https://github.com/joonhoekim/global-shader-for-macos
 #   brew install --HEAD joonhoekim/global-shader/global-shader
 #
-# --HEAD until the first v* tag: see the stable:begin marker below.
+# --HEAD until the first v* tag; the marker block below says why.
 #
 # ── Why a formula and not a cask ─────────────────────────────────────────
 # A cask downloads a finished .app, and Homebrew puts the quarantine attribute on what it
@@ -48,12 +48,12 @@ class GlobalShader < Formula
     #
     # The compiler has gone under two names across glslang's own releases, so take
     # whichever this one installed.
-    glslang_bin = Formula["glslang"].opt_bin
+    glslang_bin = formula_opt_bin("glslang")
     glslang = %w[glslang glslangValidator].map { |name| glslang_bin/name }.find(&:exist?)
     odie "no glslang compiler in #{glslang_bin}" if glslang.nil?
 
     ENV["GS_GLSLANG"] = glslang.to_s
-    ENV["GS_SPIRV_CROSS"] = (Formula["spirv-cross"].opt_bin/"spirv-cross").to_s
+    ENV["GS_SPIRV_CROSS"] = (formula_opt_bin("spirv-cross")/"spirv-cross").to_s
     # One architecture. This is built on the machine it will run on; the universal build
     # exists for the release zip, which is a different route entirely.
     ENV["GS_ARCHS"] = Hardware::CPU.arm? ? "arm64" : "x86_64"

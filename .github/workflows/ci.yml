@@ -112,6 +112,10 @@ jobs:
         run: |
           brew tap-new gs-ci/local --no-git
           cp Formula/global-shader.rb "$(brew --repo gs-ci/local)/Formula/"
+          # Since brew 6, a formula from an untrusted tap is ignored. A person gets asked;
+          # a runner has nobody to ask, so it is said outright here. Anyone tapping this
+          # for real answers the same question once, in their own terminal.
+          brew trust --formula gs-ci/local/global-shader
 
       # Run before the url is written in, so what is checked is the file as committed.
       - name: brew style
