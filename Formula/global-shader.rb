@@ -1,7 +1,9 @@
 # global-shader — this repo doubles as its own Homebrew tap.
 #
 #   brew tap joonhoekim/global-shader https://github.com/joonhoekim/global-shader-for-macos
-#   brew install joonhoekim/global-shader/global-shader
+#   brew install --HEAD joonhoekim/global-shader/global-shader
+#
+# --HEAD until the first v* tag: see the stable:begin marker below.
 #
 # ── Why a formula and not a cask ─────────────────────────────────────────
 # A cask downloads a finished .app, and Homebrew puts the quarantine attribute on what it
@@ -22,8 +24,9 @@ class GlobalShader < Formula
   desc "Hyprland's decoration:screen_shader, for macOS"
   homepage "https://github.com/joonhoekim/global-shader-for-macos"
   # stable:begin — written by tools/update-formula.sh; do not edit by hand.
-  # Empty until the first v* tag exists. With no stable url this is a head-only formula,
-  # and `brew install` builds from main, which is exactly what is wanted in the meantime.
+  # Empty until the first v* tag exists. With no stable url this is a head-only formula:
+  # complete, but Homebrew refuses to install one without `--HEAD` said out loud, since
+  # what it hands you is whatever main is today rather than a released version.
   # stable:end
   license "MIT"
   head "https://github.com/joonhoekim/global-shader-for-macos.git", branch: "main"

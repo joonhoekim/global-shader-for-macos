@@ -5,8 +5,9 @@
 # ── Why the formula ships without them ───────────────────────────────────
 # A source formula needs a tarball and its sha256, and neither exists until a tag is
 # pushed and GitHub has generated the archive. Until then Formula/global-shader.rb carries
-# only a `head`, which is a complete formula in itself — with no stable url Homebrew
-# builds from main, so `brew install` works from the day the tap goes up.
+# only a `head`, which is a complete formula in itself — `brew install --HEAD` builds from
+# main, so the tap is usable from the day it goes up. The flag is not optional there:
+# Homebrew refuses a head-only formula without it.
 #
 # On the day of a release, this fills the gap between the `stable:begin` and `stable:end`
 # markers. It is the only thing that writes those two lines; editing them by hand is how

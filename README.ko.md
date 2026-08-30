@@ -22,11 +22,13 @@ ScreenCaptureKit 으로 화면을 찍고, GLSL 을 Metal 로 옮기고, 그 결�
 
 ```sh
 brew tap joonhoekim/global-shader https://github.com/joonhoekim/global-shader-for-macos
-brew install joonhoekim/global-shader/global-shader
+brew install --HEAD joonhoekim/global-shader/global-shader
 open "$(brew --prefix global-shader)/GlobalShader.app"
 ```
 
-`glslang` 과 `spirv-cross` 는 의존성으로 따라온다. 처음 띄울 때는 번들에서 띄운다.
+아직 태그를 붙인 판이 없어서 `--HEAD` 가 붙는다. formula 에 `head` 밖에 없고,
+홈브루는 head 뿐인 formula 를 그냥은 설치하지 않고 이렇게 말해 주기를 요구한다.
+`main` 에서 빌드한다. `glslang` 과 `spirv-cross` 는 의존성으로 따라온다. 처음 띄울 때는 번들에서 띄운다.
 맨 바이너리는 자기를 띄운 쪽의 화면 기록 권한을 빌려 쓰고, 번들은 자기 권한을 쥔다.
 
 업그레이드는 매번 앱을 다시 빌드하는데, 홈브루 빌드는 키체인에 닿을 수 없어서 임의

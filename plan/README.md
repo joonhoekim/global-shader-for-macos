@@ -136,7 +136,7 @@ code written in between.** The remaining items barely produce any strings.
       version, and that path is gone after `brew upgrade glslang`
 - [x] `tools/update-formula.sh` — writes the tag's tarball url and sha256 into the
       formula. Until the first tag the formula is head-only, which Homebrew installs from
-      `main` on its own
+      `main` but only when `--HEAD` says so outright
 
 ### 4. CI
 

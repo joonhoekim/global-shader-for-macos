@@ -4,11 +4,12 @@
 
 ```sh
 brew tap joonhoekim/global-shader https://github.com/joonhoekim/global-shader-for-macos
-brew install joonhoekim/global-shader/global-shader
+brew install --HEAD joonhoekim/global-shader/global-shader
 open "$(brew --prefix global-shader)/GlobalShader.app"
 ```
 
-The url is spelled out because `brew tap user/name` on its own looks for a repository
+`--HEAD` is there because no release has been tagged yet — see
+[Until the first tagged release](#until-the-first-tagged-release). The url is spelled out because `brew tap user/name` on its own looks for a repository
 called `homebrew-name`. This one is named after what it is, not after Homebrew, so the
 tap is given its address. Nothing else changes: after this, `brew upgrade global-shader`
 and `brew uninstall global-shader` work under the short name.
@@ -119,18 +120,27 @@ is picked up by `./build.sh` itself, and an upgrade is a `git pull` away.
 
 ## Until the first tagged release
 
-There is no `v*` tag yet, so the formula carries no stable url — only `head`. Homebrew
-handles that: with no stable version, `brew install` builds from `main`.
+There is no `v*` tag yet, so the formula carries no stable url — only `head`. That is a
+complete formula, but Homebrew will not install one silently:
 
-The one difference is upgrading. `brew upgrade` compares versions and a head install has
-none to compare, so it needs to be told to look:
+```
+Error: joonhoekim/global-shader/global-shader is a HEAD-only formula.
+```
+
+Hence `--HEAD` on the install line. Homebrew wants it said out loud that what you are
+getting is whatever `main` is today, rather than a version somebody released.
+
+Upgrading needs the same kind of nudge. `brew upgrade` compares versions, and a head
+install has no version to compare, so it has to be told to go and look:
 
 ```sh
 brew upgrade --fetch-HEAD global-shader
 ```
 
 When a tag exists, [`tools/update-formula.sh`](../tools/update-formula.sh) writes the
-tarball url and its sha256 into the formula, and plain `brew upgrade` starts working.
+tarball url and its sha256 into the formula. Both flags go away then — plain
+`brew install` and `brew upgrade` start working, and `--HEAD` becomes what it normally
+is, the way to ask for the development version on purpose.
 
 ## Uninstalling
 
