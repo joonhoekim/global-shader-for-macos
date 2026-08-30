@@ -4,11 +4,12 @@
 
 ```sh
 brew tap joonhoekim/global-shader https://github.com/joonhoekim/global-shader-for-macos
-brew install joonhoekim/global-shader/global-shader
+brew install --HEAD joonhoekim/global-shader/global-shader
 open "$(brew --prefix global-shader)/GlobalShader.app"
 ```
 
-주소를 따로 적는 이유는, `brew tap user/name` 만 쓰면 홈브루가
+`--HEAD` 가 붙은 것은 아직 태그를 붙인 판이 없기 때문이다 —
+[아직 태그가 없는 동안](#아직-태그가-없는-동안) 을 보라. 주소를 따로 적는 이유는, `brew tap user/name` 만 쓰면 홈브루가
 `homebrew-name` 이라는 저장소를 찾기 때문이다. 이 저장소 이름은 홈브루가 아니라
 내용물을 따라 지었으니 탭에 주소를 알려 준다. 그 뒤는 다르지 않다.
 `brew upgrade global-shader`, `brew uninstall global-shader` 는 짧은 이름으로 된다.
@@ -114,18 +115,27 @@ codesign --force --sign "jh local codesign" "$(brew --prefix global-shader)/Glob
 
 ## 아직 태그가 없는 동안
 
-`v*` 태그가 아직 없어서 formula 에는 stable url 이 없고 `head` 만 있다. 홈브루는
-이 경우를 안다. stable 이 없으면 `brew install` 이 `main` 에서 빌드한다.
+`v*` 태그가 아직 없어서 formula 에는 stable url 이 없고 `head` 만 있다. 그것만으로도
+온전한 formula 지만, 홈브루가 말없이 설치해 주지는 않는다:
 
-다른 점은 업그레이드 하나다. `brew upgrade` 는 버전을 비교하는데 head 설치에는
-비교할 버전이 없으니, 보라고 말해 줘야 한다:
+```
+Error: joonhoekim/global-shader/global-shader is a HEAD-only formula.
+```
+
+설치 줄에 `--HEAD` 가 붙는 이유다. 받는 것이 누가 릴리스한 판이 아니라 오늘의 `main`
+이라는 사실을, 홈브루는 입 밖으로 말하게 한다.
+
+업그레이드도 같은 종류의 손짓이 필요하다. `brew upgrade` 는 버전을 비교하는데 head
+설치에는 비교할 버전이 없으니, 가서 보라고 말해 줘야 한다:
 
 ```sh
 brew upgrade --fetch-HEAD global-shader
 ```
 
 태그가 생기면 [`tools/update-formula.sh`](../tools/update-formula.sh) 가 tarball
-주소와 sha256 을 formula 에 써 넣고, 그때부터 그냥 `brew upgrade` 가 된다.
+주소와 sha256 을 formula 에 써 넣는다. 그러면 두 깃발 다 없어진다. 그냥
+`brew install` 과 `brew upgrade` 가 되고, `--HEAD` 는 원래 뜻 — 개발판을 일부러
+받겠다는 표시 — 로 돌아간다.
 
 ## 지우기
 

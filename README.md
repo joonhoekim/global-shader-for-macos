@@ -25,11 +25,14 @@ the same file keeps working on Linux.
 
 ```sh
 brew tap joonhoekim/global-shader https://github.com/joonhoekim/global-shader-for-macos
-brew install joonhoekim/global-shader/global-shader
+brew install --HEAD joonhoekim/global-shader/global-shader
 open "$(brew --prefix global-shader)/GlobalShader.app"
 ```
 
-`glslang` and `spirv-cross` come along as dependencies. Start it from the bundle
+`--HEAD` because there is no tagged release yet: the formula carries only a
+`head`, and Homebrew refuses a head-only formula unless the flag says so out
+loud. It builds from `main`. `glslang` and `spirv-cross` come along as
+dependencies. Start it from the bundle
 that first time: a bare binary borrows the Screen Recording permission of whatever
 launched it, and the bundle holds its own.
 
