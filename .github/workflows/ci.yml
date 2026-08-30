@@ -92,3 +92,67 @@ jobs:
           fi
           echo "caught the missing key"
           cp /tmp/ko.bak i18n/ko.json
+
+  # The formula, installed the way somebody else would install it.
+  #
+  # `brew style` is the cheap half. The half that matters is the install: it taps a
+  # throwaway tap, points the formula at a tarball of this very checkout, and lets
+  # Homebrew build it in its sandbox. That is the only place the parts a formula adds get
+  # exercised — the baked opt/ tool paths, the .app landing in the prefix, the symlink in
+  # bin, `brew test` — and none of them are visible from ./build.sh passing.
+  formula:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: glslang · spirv-cross
+        run: brew install glslang spirv-cross
+
+      - name: a throwaway tap to hold it
+        run: |
+          brew tap-new gs-ci/local --no-git
+          cp Formula/global-shader.rb "$(brew --repo gs-ci/local)/Formula/"
+
+      # Run before the url is written in, so what is checked is the file as committed.
+      - name: brew style
+        run: brew style gs-ci/local
+
+      # The committed formula is head-only, and head builds clone main — which on a pull
+      # request is not the code under test. A tarball of the checkout, passed through the
+      # same script a release uses, makes brew build *this* commit.
+      - name: point the copy at this checkout
+        run: |
+          # The file name is not decoration: Homebrew reads the version out of it, and a
+          # tarball it cannot read a version from is rejected outright.
+          v="$(tr -d '[:space:]' < VERSION)"
+          git archive --format=tar.gz --prefix="global-shader-$v/" \
+                      -o "$RUNNER_TEMP/global-shader-$v.tar.gz" HEAD
+          ./tools/update-formula.sh "file://$RUNNER_TEMP/global-shader-$v.tar.gz" \
+                                    "$(brew --repo gs-ci/local)/Formula/global-shader.rb"
+
+      - name: brew install
+        run: brew install --build-from-source gs-ci/local/global-shader
+
+      # --version and --check, run against what was installed rather than what was built.
+      - name: brew test
+        run: brew test gs-ci/local/global-shader
+
+      # What an install has to leave behind: the bundle (a bare binary borrows the
+      # permission of whatever launched it), the CLI, and the shaders.
+      - name: the install is shaped right
+        run: |
+          p="$(brew --prefix global-shader)"
+          test -d "$p/GlobalShader.app"
+          test -x "$(brew --prefix)/bin/global-shader"
+          test -f "$p/share/global-shader/shaders/crt/crt.frag"
+          plutil -extract CFBundleIdentifier raw -o - "$p/GlobalShader.app/Contents/Info.plist"
+          codesign -d -r- "$p/GlobalShader.app" 2>&1 | sed -n 's/^#* *designated => /requirement  /p'
+
+      # The point of GS_GLSLANG: the path baked into the binary has to be one that
+      # survives `brew upgrade glslang`. opt/ does, the Cellar path of today's version
+      # does not.
+      - name: the baked tool paths are the stable ones
+        run: |
+          p="$(brew --prefix global-shader)"
+          strings "$p/GlobalShader.app/Contents/MacOS/global-shader" | grep -q "/opt/glslang/bin/"
+          strings "$p/GlobalShader.app/Contents/MacOS/global-shader" | grep -q "/opt/spirv-cross/bin/"

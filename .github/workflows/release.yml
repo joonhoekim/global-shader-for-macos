@@ -48,6 +48,13 @@ jobs:
             echo '```'
             echo
             echo "⚠ Not notarized yet, so this zip will not open for whoever downloads it."
+            echo
+            echo "### the formula still has to be pointed at this tag"
+            echo '```sh'
+            echo "./tools/update-formula.sh v$(tr -d '[:space:]' < VERSION)"
+            echo '```'
+            echo "It builds from the source tarball, not from the zip above, so its"
+            echo "sha256 is a different value and the script fetches it."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: softprops/action-gh-release@v3
@@ -59,7 +66,16 @@ jobs:
             ⚠ **Not notarized yet.** Downloading and opening this zip gets a macOS
             "is damaged" refusal. Nothing is damaged; the signature is missing.
 
-            Building from source:
+            Installing it, meanwhile, goes through the tap — a formula, built on your
+            own machine, which is why no notarization is involved:
+
+            ```sh
+            brew tap joonhoekim/global-shader https://github.com/joonhoekim/global-shader-for-macos
+            brew install joonhoekim/global-shader/global-shader
+            open "$(brew --prefix global-shader)/GlobalShader.app"
+            ```
+
+            Or from a clone:
 
             ```sh
             brew install glslang spirv-cross

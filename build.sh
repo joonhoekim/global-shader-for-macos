@@ -62,14 +62,22 @@ find_tool() {
         | while read -r p; do [ -x "$p/bin/$1" ] && echo "$p/bin/$1"; done | head -1
 }
 
-GLSLANG="$(find_tool glslang glslang || true)"
-[ -z "${GLSLANG:-}" ] && GLSLANG="$(find_tool glslangValidator glslang || true)"
-SPIRV_CROSS="$(find_tool spirv-cross spirv-cross || true)"
+# An explicit path wins over the search. A packager already knows where the tools are,
+# and needs one that outlives their next upgrade: the Homebrew formula passes
+# /opt/homebrew/opt/glslang/bin/glslang, which stays put across versions, where the search
+# would find the Cellar path of today's version and bake a path that disappears on the
+# next `brew upgrade glslang`.
+GLSLANG="${GS_GLSLANG:-}"
+[ -z "$GLSLANG" ] && GLSLANG="$(find_tool glslang glslang || true)"
+[ -z "$GLSLANG" ] && GLSLANG="$(find_tool glslangValidator glslang || true)"
+SPIRV_CROSS="${GS_SPIRV_CROSS:-}"
+[ -z "$SPIRV_CROSS" ] && SPIRV_CROSS="$(find_tool spirv-cross spirv-cross || true)"
 
 if [ -z "${GLSLANG:-}" ] || [ -z "${SPIRV_CROSS:-}" ]; then
     echo "glslang / spirv-cross not found. Either route will do:" >&2
     echo "  brew install glslang spirv-cross && ./build.sh" >&2
     echo "  nix shell nixpkgs#glslang nixpkgs#spirv-cross -c ./build.sh" >&2
+    echo "Or name them: GS_GLSLANG=/path/to/glslang GS_SPIRV_CROSS=/path/to/spirv-cross" >&2
     exit 1
 fi
 echo "version      $VERSION ($BUILD_NUMBER)"
