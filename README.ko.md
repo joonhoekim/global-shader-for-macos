@@ -14,13 +14,31 @@ ScreenCaptureKit 으로 화면을 찍고, GLSL 을 Metal 로 옮기고, 그 결�
 
 *[English documentation](README.md)*
 
-> **아직 내려받을 수 있는 판이 없다.** 자체 서명이라 남의 기계에서는 Gatekeeper 가
-> 막는다. 지금은 소스에서 빌드하는 길뿐이다 — 배포판까지 무엇이 필요한지는
-> [`plan/`](plan/README.md) 에 있다.
+> **내려받는 판은 없다.** 뒤에 유료 Apple Developer 계정이 없어서 건네줄 공증된
+> `.app` 이 없다 — 공증 안 된 앱은 Gatekeeper 가 막는다. 대신 있는 것은 쓰는
+> 기계에서 직접 빌드하는 탭이다. 그러면 Gatekeeper 가 볼 것이 없다.
+
+## 설치
+
+```sh
+brew tap joonhoekim/global-shader https://github.com/joonhoekim/global-shader-for-macos
+brew install joonhoekim/global-shader/global-shader
+open "$(brew --prefix global-shader)/GlobalShader.app"
+```
+
+`glslang` 과 `spirv-cross` 는 의존성으로 따라온다. 처음 띄울 때는 번들에서 띄운다.
+맨 바이너리는 자기를 띄운 쪽의 화면 기록 권한을 빌려 쓰고, 번들은 자기 권한을 쥔다.
+
+업그레이드는 매번 앱을 다시 빌드하는데, 홈브루 빌드는 키체인에 닿을 수 없어서 임의
+서명이 된다. 그러면 macOS 는 이제 없는 서명에 권한을 묶어 둔 채로 남는다 —
+체크박스는 켜져 있는데 캡처가 멈춘다. 다시 허용하는 데 두 줄, 신원을 직접 하나
+만들어 두면 `codesign` 한 줄이다. 두 방법과 왜 cask 가 아니라 formula 인지는
+[홈브루로 설치하기](docs/install.ko.md) 에 있다.
 
 ## 빌드
 
-macOS 13 이상, Xcode 명령줄 도구, 그리고 셰이더 도구 둘.
+이걸 만지거나, 홈브루를 건너뛰려면. macOS 13 이상, Xcode 명령줄 도구, 그리고
+셰이더 도구 둘.
 
 ```sh
 brew install glslang spirv-cross
@@ -123,13 +141,14 @@ shaders/
 | [손잡이와 재그리기](docs/knobs.ko.md) | 돌아가는 중에 끄는 셰이더 값, `!motion`, 재그리기를 정하는 방식 |
 | [셰이더](docs/shaders.ko.md) | 각 갈래가 무엇이고 왜 그런가 — 지운 셋까지 |
 | [성능과 아직 안 한 것](docs/performance.ko.md) | 실제로 잰 값, 그리고 안 잰 것 |
+| [홈브루로 설치하기](docs/install.ko.md) | 탭, 무엇이 어디에 놓이는지, 왜 cask 가 아닌지 |
 | [화면 기록 권한](docs/permissions.ko.md) | 재빌드하면 조용히 끊기는 함정 |
 | [다국어](docs/i18n.ko.md) | 영어와 한국어, 그리고 일부러 안 옮기는 것 |
 | [라이선스와 먼저 있던 것들](docs/provenance.ko.md) | 셰이더 출처와 비슷한 물건들 |
 
 [`CONTRIBUTING.md`](CONTRIBUTING.md) 에 셰이더 더하는 법, 번역 더하는 법, 그리고
-안 받는 것이 있다. [`plan/`](plan/README.md) 은 이 레포를 공개하고 Homebrew 에
-넣기까지의 작업 목록이다.
+안 받는 것이 있다. [`plan/`](plan/README.md) 은 이 레포를 공개하기까지의 작업
+목록이고, 공증된 배포판에 아직 무엇이 남았는지도 거기 있다.
 
 ## 라이선스
 

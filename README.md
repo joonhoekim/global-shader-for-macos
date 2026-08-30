@@ -16,13 +16,34 @@ the same file keeps working on Linux.
 
 *[한국어 문서](README.ko.md)*
 
-> **There is no download yet.** The app is self-signed, so Gatekeeper blocks it
-> on anyone else's machine. Building from source is currently the only way — see
-> [`plan/`](plan/README.md) for what a distributable build would take.
+> **There is no download.** No paid Apple Developer account stands behind this, so
+> there is no notarized `.app` to hand over — Gatekeeper refuses one that is not
+> notarized. What there is instead is a tap that builds it on your machine, where
+> there is nothing for Gatekeeper to check.
+
+## Install
+
+```sh
+brew tap joonhoekim/global-shader https://github.com/joonhoekim/global-shader-for-macos
+brew install joonhoekim/global-shader/global-shader
+open "$(brew --prefix global-shader)/GlobalShader.app"
+```
+
+`glslang` and `spirv-cross` come along as dependencies. Start it from the bundle
+that first time: a bare binary borrows the Screen Recording permission of whatever
+launched it, and the bundle holds its own.
+
+Every upgrade rebuilds the app, and a Homebrew build cannot reach your keychain, so
+it is signed ad-hoc: macOS then holds the permission against a signature that no
+longer exists, and the checkbox stays on while capture stops. Granting it again is
+two lines, or one `codesign` if you make an identity of your own.
+[Installing with Homebrew](docs/install.md) has both, and why this is a formula
+rather than a cask.
 
 ## Build
 
-macOS 13 or later, Xcode command line tools, and two shader tools.
+To work on it, or to skip Homebrew. macOS 13 or later, Xcode command line tools,
+and two shader tools.
 
 ```sh
 brew install glslang spirv-cross
@@ -131,13 +152,14 @@ live slider. What each family is, and why its values are what they are, is in
 | [Knobs and redraw](docs/knobs.md) | Shader values you can drag while it runs, `!motion`, and how continuous redraw is decided |
 | [The shaders](docs/shaders.md) | What each family does and why — including three that were removed |
 | [Performance](docs/performance.md) | What it costs, measured, and what has not been measured |
+| [Installing with Homebrew](docs/install.md) | The tap, what it puts where, why a formula and not a cask |
 | [Screen Recording permission](docs/permissions.md) | The trap where rebuilding silently revokes it |
 | [Languages](docs/i18n.md) | English and Korean, and what is deliberately left untranslated |
 | [License and prior art](docs/provenance.md) | Attribution for the shaders, and similar projects |
 
 [`CONTRIBUTING.md`](CONTRIBUTING.md) covers adding a shader, adding a
 translation, and what does not get in. [`plan/`](plan/README.md) is the working
-list for getting this repo publishable and into Homebrew.
+list for getting this repo publishable, and what a notarized build still needs.
 
 ## License
 

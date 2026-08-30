@@ -79,6 +79,12 @@ echo
 echo "ready to paste into the cask:"
 echo "  version \"$VERSION\""
 echo "  sha256 \"$SHA\""
+echo
+# The formula is a different route and takes nothing from this zip. It builds from the
+# tag's source tarball, whose sha256 is not this one — hence a script rather than a
+# copy-paste of the value above.
+echo "the formula is separate — it builds from the tag's source tarball:"
+echo "  ./tools/update-formula.sh v$VERSION"
 
 if [ -z "$NOTARIZABLE" ]; then
     cat <<GSEOF
