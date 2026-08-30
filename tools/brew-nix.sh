@@ -23,6 +23,13 @@
 #      link it out of the store into /opt/homebrew/Library at all. So fixing (1) alone
 #      moves you to "Configuration file not found" and no further.
 #
+# One gap this deliberately does not close: `brew style <tap>` also lints the workflow
+# files `brew tap-new` generates, and actionlint reads its config out of
+# $HOMEBREW_REPOSITORY/.github/. Under nix-homebrew that repository is a stub holding a
+# bare .git and nothing else, so styling a whole tap fails here no matter what this script
+# mirrors. Style the formula file instead — `brew style Formula/global-shader.rb` — which
+# is the file that gets committed anyway.
+#
 # `brew install` is unaffected — it only writes to the Cellar. It is the commands that
 # treat Homebrew's own checkout as scratch space that cannot run, which is exactly the
 # half of ci.yml's `formula` job that a nix user would otherwise have to push to find out

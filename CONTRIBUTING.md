@@ -141,9 +141,10 @@ none of them are visible from `./build.sh` passing. Locally:
 
 ```sh
 # The formula file on its own. No tap needed, and this is the file that gets
-# committed. (CI runs `brew style gs-ci/local`, over the whole tap — which also
-# lints the workflow files `tap-new` generates and so drags in actionlint. On a
-# runner that is free; locally it is a detour with nothing at the end of it.)
+# committed. (CI runs `brew style gs-ci/local`, over the whole tap, which also
+# lints the workflow files `tap-new` generates. That needs actionlint, and
+# actionlint reads its config out of Homebrew's own repository — free on a
+# runner, out of reach under nix-homebrew, which stubs that repository out.)
 brew style Formula/global-shader.rb
 
 brew tap-new gs-ci/local --no-git
@@ -185,8 +186,8 @@ shim="$(./tools/brew-nix.sh)"     # or take the path once and use it as brew
 
 The first run mirrors and bundles, about twenty seconds; after that it is as
 fast as `brew`. `brew install` needs none of this — it only writes to the
-Cellar. That script's header explains both ways nix breaks this, including the
-second one, which the error message never mentions.
+Cellar. Styling a whole tap stays out of reach even with the shim. That script's
+header explains all three, including the one the error message never mentions.
 
 ## Before opening a PR
 
