@@ -288,7 +288,7 @@ struct ShaderSource {
     //
     // ── Why slot 2 is empty ──────────────────────────────────────────────
     // Putting the tools in the bundle removes the external dependency (branch C in
-    // plan/repo-shape.md), and that is work for after there is an account to notarize
+    // docs/notes/plan/repo-shape.md), and that is work for after there is an account to notarize
     // with. The slot is opened now so that the remaining work then is "copy the files".
     private static func tool(_ baked: String, _ name: String) throws -> String {
         let envKey = "GS_" + name.uppercased().replacingOccurrences(of: "-", with: "_")

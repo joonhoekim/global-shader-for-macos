@@ -21,9 +21,10 @@ here yet.
 
 A cask downloads a finished `.app`, and Homebrew marks what it downloads with the
 quarantine attribute. Gatekeeper then wants the app notarized, notarization wants a paid
-Apple Developer account, and there is no account — the premise the whole of
-[`plan/`](../plan/README.md) is written under. Self-signing does not substitute: Apple
-vouching for the certificate is the entire content of the check.
+Apple Developer account, and there is no account — the premise
+[the checklist](notes/plan/README.md) this repo was made public from is written
+under. Self-signing does not substitute: Apple vouching for the certificate is the
+entire content of the check.
 
 A formula compiles on the machine it installs on. Nothing arrives as a downloaded app, so
 nothing is quarantined, and Gatekeeper has no opinion about a binary the machine built

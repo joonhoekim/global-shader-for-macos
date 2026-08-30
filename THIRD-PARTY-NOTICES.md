@@ -33,7 +33,7 @@ with this project — they are installed separately through Homebrew or nix, and
 `build.sh` only records the paths it found them at.
 
 If they are ever bundled inside the `.app` (branch C in
-[`plan/repo-shape.md`](plan/repo-shape.md)), their notices belong in this file:
+[`docs/notes/plan/repo-shape.md`](docs/notes/plan/repo-shape.md)), their notices belong in this file:
 the licences are `BSD-3-Clause`, `MIT`, and `Apache-2.0`, all of which carry an
 attribution obligation. That plan document records why the `GPL-3.0-or-later`
 in glslang's licence field does not apply to a bundled build.

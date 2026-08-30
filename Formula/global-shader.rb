@@ -8,7 +8,7 @@
 # ── Why a formula and not a cask ─────────────────────────────────────────
 # A cask downloads a finished .app, and Homebrew puts the quarantine attribute on what it
 # downloads. Gatekeeper then refuses anything that is not notarized, and notarization
-# needs a paid Apple Developer account — the premise plan/README.md is written under.
+# needs a paid Apple Developer account — the premise docs/notes/plan/README.md is written under.
 #
 # A formula compiles on the machine it installs on. Nothing is downloaded as an app, so
 # nothing is quarantined, and no account is involved. The cost is moved rather than

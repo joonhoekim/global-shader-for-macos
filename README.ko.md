@@ -34,8 +34,9 @@ open "$(brew --prefix global-shader)/GlobalShader.app"
 
 아직 태그를 붙인 판이 없어서 `--HEAD` 가 붙는다. formula 에 `head` 밖에 없고,
 홈브루는 head 뿐인 formula 를 그냥은 설치하지 않고 이렇게 말해 주기를 요구한다.
-`main` 에서 빌드한다. `glslang` 과 `spirv-cross` 는 의존성으로 따라온다. 처음 띄울 때는 번들에서 띄운다.
-맨 바이너리는 자기를 띄운 쪽의 화면 기록 권한을 빌려 쓰고, 번들은 자기 권한을 쥔다.
+`main` 에서 빌드한다. `glslang` 과 `spirv-cross` 는 의존성으로 따라온다. 처음
+띄울 때는 번들에서 띄운다 — 맨 바이너리는 자기를 띄운 쪽의 화면 기록 권한을 빌려
+쓰고, 번들은 자기 권한을 쥔다.
 
 업그레이드는 매번 앱을 다시 빌드하는데, 홈브루 빌드는 키체인에 닿을 수 없어서 임의
 서명이 된다. 그러면 macOS 는 이제 없는 서명에 권한을 묶어 둔 채로 남는다 —
@@ -90,7 +91,7 @@ macOS 가 화면 기록 권한을 물어본다. 허용하고 메뉴 막대에서
 ./build/global-shader shaders/crt/crt.frag                # 한 장 건다
 ./build/global-shader shaders/water/still.frag shaders/print/paper.frag
                                                           # 순서대로 겹쳐 건다
-./build/global-shader --profile golden-era                # 저장해 둔 한 벌로
+./build/global-shader --profile <이름>                     # 저장해 둔 한 벌로
 ./build/global-shader --set CURVE 0.22                    # 값을 실시간으로 민다
 ./build/global-shader --check shaders/water/still.frag    # 번역만 — 창도
                                                           # 권한도 없이
@@ -147,7 +148,7 @@ shaders/
 | [구조](docs/architecture.ko.md) | 왜 화면을 찍는 길밖에 없는가, 프레임이 지나는 길, 유일한 치명적 실패, GLSL → MSL, 셰이더 규약 둘 |
 | [쓰는 법](docs/usage.ko.md) | 체인, 메뉴 막대, 설정과 프로필, 로그인할 때 시작, 제어 소켓, 옵션 전부 |
 | [손잡이와 재그리기](docs/knobs.ko.md) | 돌아가는 중에 끄는 셰이더 값, `!motion`, 재그리기를 정하는 방식 |
-| [셰이더](docs/shaders.ko.md) | 각 갈래가 무엇이고 왜 그런가 — 지운 셋까지 |
+| [셰이더](docs/shaders.ko.md) | 각 갈래가 무엇이고, 값이 왜 그 값이고, 새 셰이더가 넘어야 하는 선 |
 | [성능과 아직 안 한 것](docs/performance.ko.md) | 실제로 잰 값, 그리고 안 잰 것 |
 | [홈브루로 설치하기](docs/install.ko.md) | 탭, 무엇이 어디에 놓이는지, 왜 cask 가 아닌지 |
 | [화면 기록 권한](docs/permissions.ko.md) | 재빌드하면 조용히 끊기는 함정 |
@@ -155,8 +156,10 @@ shaders/
 | [라이선스와 먼저 있던 것들](docs/provenance.ko.md) | 셰이더 출처와 비슷한 물건들 |
 
 [`CONTRIBUTING.md`](CONTRIBUTING.md) 에 셰이더 더하는 법, 번역 더하는 법, 그리고
-안 받는 것이 있다. [`plan/`](plan/README.md) 은 이 레포를 공개하기까지의 작업
-목록이고, 공증된 배포판에 아직 무엇이 남았는지도 거기 있다.
+안 받는 것이 있다(영어). [`docs/notes/`](docs/notes/history.ko.md) 에는 이미 끝난
+결정들 — 지운 셰이더, 합친 파일, 고친 버그 — 과 이 레포를 공개하기까지의
+[작업 목록](docs/notes/plan/README.md)(영어)이 있다. 공증된 배포판에 아직 무엇이
+남았는지도 거기 있다.
 
 ## 라이선스
 

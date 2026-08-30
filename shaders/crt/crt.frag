@@ -24,7 +24,7 @@
 // one thing it has going for it — costing nothing on a still screen — would be gone. So a
 // knob carries `!motion` next to its range, the shader declaring "this one opens and
 // closes time" — with every marked knob at 0, redraw switches off. The details are in
-// ../../docs/knobs.md, "Knobs that open and close time".
+// ../../docs/knobs.md, "Knobs open and close time".
 //
 // **On Linux neither of these exists.** `!motion` is just a comment and the `#define`s are
 // constants, so the compiler folds the branches (which is why the cost is 0 there too).

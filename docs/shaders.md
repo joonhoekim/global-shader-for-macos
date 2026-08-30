@@ -2,73 +2,70 @@
 
 *[← README](../README.md)  ·  [한국어](shaders.ko.md)*
 
-## Three that were removed
-
-There used to be three more: `cyberpunk/rain.frag` (raindrops),
-`print/riso.frag` (risograph halftone) and `print/dither.frag` (four-colour Game
-Boy). They were removed after actually living with them in a Linux Hyprland
-session — all three make body text unreadable, and the look was not worth that
-price. It is not that they were beyond saving. `rain.frag` could have borrowed
-`busy()` from its sibling `water/still.frag` to fold refraction down over fields
-of text, and `dither.frag` improved when `PIXEL` came down. But none of the
-three becomes a look you can *read* through. `dither.frag` cannot, in principle:
-protecting letterforms means not pixelating, and then it is no longer that
-shader.
-
-That criterion is what [`CONTRIBUTING.md`](../CONTRIBUTING.md) records as the
-bar for a new shader.
+```
+shaders/
+├── crt/          crt.frag  glow.glsl          a CRT, and its bloom on its own
+├── water/        still.frag  river.frag  ocean.frag
+├── cyberpunk/    neon.frag  glitch.frag       written to be stacked
+└── print/        paper.frag                   e-ink. free on a still screen
+```
 
 The folder is the family name, and the menu bar's `Chain → Add` folds along
-exactly these lines. Laying everything out flat was right at three or four
-files; at twelve it stopped being right — a list you have to read name by name
-to understand is not a list.
+exactly these lines. Every file carries its reasoning in its own header — why
+each value is what it is — and that same text comes back as slider help
+([Knobs](knobs.md)).
 
-## Down to one `crt.frag` — the duplication is gone
+Two things are worth knowing before picking one. **Does it read `time`?** If it
+does, the screen is redrawn continuously and a laptop pays for it in battery;
+`glow.glsl` and `paper.frag` never do, and `crt.frag` stops when its motion knobs
+go to 0. And **can you read through it?** That is the bar a shader here has to
+clear — [What does not get in](#what-does-not-get-in).
 
-There used to be `crt.frag` and `crt-motion.frag`: the version with the flowing
-parts (grain, hum band, click ripples) and the version without. The reason for
-the split was the redraw judgement — see [Knobs](knobs.md).
-
-**It is less that the judgement was wrong than that what it promised was not
-kept.** Before merging, the two were compared:
-
-```
-curve · gun · focusAt · bloom · stripes · bezel   0 lines of difference in code, comments aside
-#define present only in crt.frag                  none (motion was a superset)
-FOCUS                                             0.18  vs  0.32   ← diverged
-FOCUS_NEAR                                        0.25  vs  0.28   ← diverged
-```
-
-The header of `crt-motion.frag` said "if you change this, change `./crt.frag`
-too". Those two lines are what writing that down amounts to. The failure
-duplication invites was not "these could diverge some day" — it had already
-happened.
-
-The two divergences were resolved toward `crt.frag` (0.18 / 0.25), because that
-file's comments record why it came down from 0.5 to there, and the 0.32 on the
-motion side was a copy made before that judgement landed. They are knobs, so you
-can put them back by eye.
-
-To get the old `crt.frag` exactly:
+## The CRT family
 
 ```sh
-global-shader --set GRAIN 0
-global-shader --set HUM 0 && global-shader --set HUM_LIFT 0 && global-shader --set HUM_GLOW 0
-global-shader --set RIPPLE_GAIN 0 && global-shader --set RIPPLE_LIFT 0 && global-shader --set RIPPLE_GLOW 0
+global-shader shaders/crt/crt.frag                        # the whole glass
+global-shader shaders/crt/glow.glsl                       # the bloom alone
+global-shader shaders/crt/crt.frag shaders/crt/glow.glsl  # chained
 ```
+
+| | |
+|---|---|
+| `crt.frag` | curvature, aperture grille, scanlines, chromatic aberration, bloom and focus, plus film grain, a mains hum band and click ripples. 30 knobs |
+| `glow.glsl` | the phosphor afterglow on its own — no curvature, no aberration, no grille. Never reads `time` |
+
+`crt.frag` reads **outside** its own pixel four ways over (curvature, aberration,
+bloom, focus), which is exactly why this program captures the screen instead of
+painting on top of it — see the table in [Architecture](architecture.md).
+
+**Everything that flows in it is behind a knob.** Set `GRAIN`, the three `HUM*`
+and the three `RIPPLE_*` to 0 and nothing moves — and, because those knobs are
+marked `!motion`, continuous redraw switches off with them and the shader becomes
+free on a still screen. It was two files once, a still one and a moving one;
+[what that cost](notes/history.md#crtfrag-and-crt-motionfrag-merged-into-one) is
+in the notes.
+
+`glow.glsl` is the part worth leaving on every day, pulled out as its own file.
+It shares `crt.frag`'s origin (both descend from a Hyprland screen shader — see
+[License and prior art](provenance.md)) but no code: each is an independent
+program, and the bloom is rebuilt the same way in both, a golden-angle spiral
+with a soft knee rather than a ring with a hard threshold.
 
 ### Turning it off with a knob has to be free
 
-Otherwise the reason to split does not go away. Two things are involved.
+Otherwise the reason to keep a separate still version does not go away. Two
+things are involved.
 
 **One. Uniform branches.** A promoted knob is a uniform, so the compiler cannot
 fold it — with `GRAIN` at 0 the grain code still runs for every pixel. Wrapping
 it in `if (GRAIN > 0.0)` makes it a branch on a single uniform, so the whole warp
 takes the same side and it genuinely does not run. Without the wrap, the
-difference between the old two files (12.1ms → 14.0ms) becomes a permanent cost.
-`PRESERVE` in the water set uses the same trick.
+difference between a still and a moving CRT (12.1ms → 14.0ms) becomes a permanent
+cost. `PRESERVE` in the water set uses the same trick.
 
-**Two. `!motion`.** See [Knobs](knobs.md).
+**Two. `!motion`.** The automatic redraw judgement reads the source, so at
+`GRAIN` 0 it would still see `time` and keep drawing. The marker is how the
+shader says otherwise — see [Knobs](knobs.md).
 
 ### Why it was not split into a chain instead
 
@@ -90,24 +87,27 @@ chain.
 ## The water set
 
 ```sh
-./build/global-shader shaders/water/still.frag   # a calm surface
-./build/global-shader shaders/water/river.frag   # a flowing river
-./build/global-shader shaders/water/ocean.frag   # a swelling sea
+global-shader shaders/water/still.frag   # a calm surface
+global-shader shaders/water/river.frag   # a flowing river
+global-shader shaders/water/ocean.frag   # a swelling sea
 ```
 
 All three are two lines at heart — take the gradient of a height field, and read
 `uv` displaced by it. The colour and the glints are decoration on top; **the
 displacement is the water.** Which puts these three firmly on the capture side of
 the table in [Architecture](architecture.md). Neither a gamma LUT nor a blend
-overlay can read `tex`, so on
-those two routes all that survives is a blue tint. Same place the curvature in
-`crt.frag` justified capture.
+overlay can read `tex`, so on those two routes all that survives is a blue tint.
+Same place the curvature in `crt.frag` justified capture.
 
 How the height field is made is what separates the three. The calm surface is
 interference of four sines (the gradient comes out analytically, and building it
 from noise makes it fizz, which is no longer "calm"); the river is FBM stretched
 along the flow axis plus domain warping; the sea is three sine swells with FBM
 ripples on top. Details are in each file's header.
+
+Water moves, so all three redraw continuously. **There is no choice there** —
+water that does not move is not water — and that is the battery cost this family
+has no way around.
 
 ### Two new costs a refraction shader pays
 
@@ -160,15 +160,10 @@ global-shader shaders/cyberpunk/neon.frag shaders/cyberpunk/glitch.frag      the
 | `neon.frag` | a halo picked by **saturation**, not brightness |
 | `glitch.frag` | occasional bursts of band displacement, RGB separation, tearing |
 
-There were three. `rain.frag` (raindrops beading and running down glass) was the
-middle one, and it was removed — blurring outside the drops is the premise of
-that effect, and that blur makes body text entirely unreadable (see
-[Three that were removed](#three-that-were-removed)).
-
 **Both stand on their own, but this family was written from the start assuming
 it would be stacked.** Before chains existed they would have had to be one file,
 and merged you cannot turn just the signage off or try a different order (see
-"Chains").
+[Chains](usage.md#chains--several-shaders-in-order)).
 
 That assumption pays for itself in two places.
 
@@ -228,11 +223,6 @@ global-shader shaders/print/paper.frag shaders/cyberpunk/glitch.frag     the pri
 |---|---|
 | `paper.frag` | e-ink. Applied in order to **read** |
 
-There were three. `riso.frag` (rotated CMYK halftone) and `dither.frag` (chunky
-pixels + Bayer + fixed palette) were alongside it, and both were removed (see
-[Three that were removed](#three-that-were-removed)). That the survivor happens to be the only one of the
-three made **in order to read** is the lesson of this family.
-
 **It never uses `time` once.** So redraw turns off and it uses no GPU on a still
 screen. Exactly the opposite axis from the water set, and the battery cost that
 one has no choice but to pay is not paid here.
@@ -244,12 +234,16 @@ right one.
 
 ### A shader applied in order to read
 
-The removed `riso.frag` and `dither.frag` traded legibility for a look.
-`paper.frag` is the reverse — it is applied **in order to read text** — and so
-every other decision leans toward legibility. That is why it is not an accident
-that this is the one that survived.
+`paper.frag` is applied **in order to read text**, and so every other decision
+leans toward legibility. That difference comes out as `SHARP`. Most shaders in
+this repo move toward blur (bloom, focus, haze); this one alone **sharpens.**
+Bleaching and tonal compression make strokes look soft, so without pulling them
+back with an unsharp pass you get a faded screen rather than paper.
 
-That difference comes out as `SHARP`. Most shaders in this repo move toward blur
-(bloom, focus, haze); this one alone **sharpens.** Bleaching and tonal
-compression make strokes look soft, so without pulling them back with an unsharp
-pass you get a faded screen rather than paper.
+## What does not get in
+
+A shader that cannot be *read* through has to be worth it. Three were removed for
+failing that — `rain.frag`, `riso.frag` and `dither.frag`, all of which make body
+text unreadable — and that is where the bar came from:
+[Three shaders that were removed](notes/history.md#three-shaders-that-were-removed).
+[`CONTRIBUTING.md`](../CONTRIBUTING.md) states it as the rule for a new one.

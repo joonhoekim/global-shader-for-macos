@@ -6,7 +6,7 @@ import Metal
 //   global-shader                                 the chain saved in settings
 //   global-shader ~/.config/gs/shaders/crt.frag   apply one
 //   global-shader crt.frag grain.frag             apply two, in order
-//   global-shader --profile golden-era            a saved set
+//   global-shader --profile <name>                a saved set
 //
 // One window per display. Each display is captured with ScreenCaptureKit, run
 // through the chain, and drawn back into its own window. Why no other shape

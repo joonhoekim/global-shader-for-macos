@@ -11,23 +11,6 @@ brew install glslang spirv-cross     # or: nix shell nixpkgs#glslang nixpkgs#spi
 (tool paths, version) and `Sources/Strings.swift` (the translation table). Both
 are gitignored. Do not edit them; edit `VERSION` and `i18n/*.json` instead.
 
-## The icon
-
-`Resources/icon.png` is the master — one 1024×1024 full-bleed square — and
-[`tools/make-icon.swift`](tools/make-icon.swift) masks it into the macOS icon
-shape at each of the ten `.icns` slots. To change the icon, replace that one
-file; to change the shape, the margin or the shadow, that script's header
-explains where every number came from.
-
-The result is cached at `build/AppIcon.icns` and recomposed only when the
-artwork or the script is newer, so it stays out of the shader edit / rebuild
-loop. Delete it to force a rebuild.
-
-`LSUIElement` keeps this app out of the Dock, so the icon is not for the Dock.
-Where it does show is Finder, Spotlight, Login Items, and the list in System
-Settings → Privacy & Security → Screen Recording — that last one being the
-place a user has to pick this app out by sight.
-
 The fastest check for anything shader-related needs no permission and no window:
 
 ```sh
@@ -80,8 +63,8 @@ carry their reasoning; that is a large part of what they are for.
 
 Three shaders were removed after living with them: `rain.frag`, `riso.frag` and
 `dither.frag`. The criterion was not that they looked bad — it was that all three
-made body text unreadable, and the look was not worth that.
-[The shaders](docs/shaders.md) records this in detail.
+made body text unreadable, and the look was not worth that. The full account is in
+[the notes](docs/notes/history.md#three-shaders-that-were-removed).
 
 So: a shader that cannot be *read* through has to be worth it. Something meant
 for looking at rather than working under is fine, but say so in the header, and
@@ -130,6 +113,23 @@ a slider tooltip.
   `i18n/ko.json` and the `*.ko.md` documents.
 - No Xcode project. `build.sh` is `swiftc` plus a bundle, and keeping it that
   simple is deliberate.
+
+## The icon
+
+`Resources/icon.png` is the master — one 1024×1024 full-bleed square — and
+[`tools/make-icon.swift`](tools/make-icon.swift) masks it into the macOS icon
+shape at each of the ten `.icns` slots. To change the icon, replace that one
+file; to change the shape, the margin or the shadow, that script's header
+explains where every number came from.
+
+The result is cached at `build/AppIcon.icns` and recomposed only when the
+artwork or the script is newer, so it stays out of the shader edit / rebuild
+loop. Delete it to force a rebuild.
+
+`LSUIElement` keeps this app out of the Dock, so the icon is not for the Dock.
+Where it does show is Finder, Spotlight, Login Items, and the list in System
+Settings → Privacy & Security → Screen Recording — that last one being the
+place a user has to pick this app out by sight.
 
 ## The formula
 

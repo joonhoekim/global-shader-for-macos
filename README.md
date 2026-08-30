@@ -38,9 +38,9 @@ open "$(brew --prefix global-shader)/GlobalShader.app"
 `--HEAD` because there is no tagged release yet: the formula carries only a
 `head`, and Homebrew refuses a head-only formula unless the flag says so out
 loud. It builds from `main`. `glslang` and `spirv-cross` come along as
-dependencies. Start it from the bundle
-that first time: a bare binary borrows the Screen Recording permission of whatever
-launched it, and the bundle holds its own.
+dependencies. Start it from the bundle that first time: a bare binary borrows the
+Screen Recording permission of whatever launched it, and the bundle holds its
+own.
 
 Every upgrade rebuilds the app, and a Homebrew build cannot reach your keychain, so
 it is signed ad-hoc: macOS then holds the permission against a signature that no
@@ -99,7 +99,7 @@ old one, so the checkbox stays checked while the app is silently denied.
 ./build/global-shader shaders/crt/crt.frag                # apply one
 ./build/global-shader shaders/water/still.frag shaders/print/paper.frag
                                                           # stack, in order
-./build/global-shader --profile golden-era                # a saved set
+./build/global-shader --profile <name>                    # a saved set
 ./build/global-shader --set CURVE 0.22                    # push a value, live
 ./build/global-shader --check shaders/water/still.frag    # translate only —
                                                           # no window, no permission
@@ -159,7 +159,7 @@ live slider. What each family is, and why its values are what they are, is in
 | [Architecture](docs/architecture.md) | Why capturing the screen is the only route that works, the frame path, the one fatal failure, GLSL → MSL, the two shader conventions |
 | [Usage](docs/usage.md) | Chains, the menu bar, settings and profiles, start at login, the control socket, every option |
 | [Knobs and redraw](docs/knobs.md) | Shader values you can drag while it runs, `!motion`, and how continuous redraw is decided |
-| [The shaders](docs/shaders.md) | What each family does and why — including three that were removed |
+| [The shaders](docs/shaders.md) | What each family does, why its values are what they are, and the bar a new one has to clear |
 | [Performance](docs/performance.md) | What it costs, measured, and what has not been measured |
 | [Installing with Homebrew](docs/install.md) | The tap, what it puts where, why a formula and not a cask |
 | [Screen Recording permission](docs/permissions.md) | The trap where rebuilding silently revokes it |
@@ -167,8 +167,11 @@ live slider. What each family is, and why its values are what they are, is in
 | [License and prior art](docs/provenance.md) | Attribution for the shaders, and similar projects |
 
 [`CONTRIBUTING.md`](CONTRIBUTING.md) covers adding a shader, adding a
-translation, and what does not get in. [`plan/`](plan/README.md) is the working
-list for getting this repo publishable, and what a notarized build still needs.
+translation, and what does not get in.
+[`docs/notes/`](docs/notes/history.md) holds decisions that are already carried
+out — shaders that were removed, a merge, a bug that is fixed — and
+[the checklist](docs/notes/plan/README.md) this repo was made public from,
+including what a notarized build still needs.
 
 ## License
 

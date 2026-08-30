@@ -11,12 +11,17 @@ of cooldown between runs.
 | | fps | per frame |
 |---|---|---|
 | passthrough (no shader) | 143.4 | 7.0ms |
-| `crt.frag` | 82.6 | 12.1ms |
-| `crt.frag` (knobs promoted) | 83.4 | 12.0ms |
-| `crt.frag --scale 0.7` | 122.6 | 8.2ms |
-| `crt-motion.frag` (now merged into `crt.frag`) | 71.5 | 14.0ms |
-| merged `crt.frag`, motion knobs at 0 | **not measured** | should come back to the 12.1ms above |
-| `water-*.frag`, the cyberpunk set, the print set | **not measured** | |
+| `crt.frag` without the moving parts | 82.6 | 12.1ms |
+| the same, knobs promoted | 83.4 | 12.0ms |
+| the same, `--scale 0.7` | 122.6 | 8.2ms |
+| `crt.frag` with grain, hum band and ripples running | 71.5 | 14.0ms |
+| `crt.frag` with the motion knobs at 0 | **not measured** | should come back to the 12.1ms above |
+| the water, cyberpunk and print sets | **not measured** | |
+
+Those two CRT rows were **two files** when this was measured, a still one and a
+moving one ([notes](notes/history.md#crtfrag-and-crt-motionfrag-merged-into-one)).
+Today they are one file and a set of knobs, which is what the unmeasured row
+below them is asking about.
 
 **All of them fit inside 60fps (16.7ms).** With vsync on, all five configurations
 sit at 58–59fps, so there is no reason to lower `--scale` on this machine. It is
@@ -92,7 +97,7 @@ blurrier, not sharper.
   unseen problem by default. If you see it, start with `freeze` (hold the last
   frame); if that still looks wrong, `hide` (hide the window briefly — you see
   the unshaded screen during that time).
-- The cost of the three `water-*.frag` is not measured; the table above just has
+- The cost of the three `shaders/water/*.frag` is not measured; the table above just has
   the row reserved. The noise is ALU-bound and there are 10 texture fetches
   including `PRESERVE`, against roughly 20 in `crt.frag`, so it should be
   cheaper — but **that is an estimate, not a measurement.**
@@ -104,8 +109,8 @@ blurrier, not sharper.
   translation and knob promotion were confirmed with `--check`. The values were
   chosen to make sense in place, so there is still room to turn the knobs against
   an actual screen.
-- Whether the merged `crt.frag` with the motion knobs at 0 **produces the same
-  picture as the old `crt.frag` has not been compared by eye.** In code the same
+- Whether `crt.frag` with its motion knobs at 0 **produces the same picture as
+  the still file it replaced has not been compared by eye.** In code the same
   expressions sit in the same places and `modulate(col, 0, …)` is the identity,
   but that is knowing by reading, not by looking.
 - **Whether the uniform branches actually save anything is not measured.** It

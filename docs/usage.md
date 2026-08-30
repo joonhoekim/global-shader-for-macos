@@ -55,31 +55,19 @@ a window means activating an accessory app, which steals focus from whatever you
 were using. A tool that puts glass over your screen interrupting your work to
 change one scale value does not add up.
 
-### The menu used to be buried under the glass
+### The overlay steps aside for the menu
 
-**This is a fixed bug, and nobody knew about it before this UI existed.**
-
-The overlay lives at `CGShieldingWindowLevel()`, which is 2147483628. A menu's
-dropdown window is 101 (`kCGPopUpMenuWindowLevel`), and `NSAlert` and
-`NSOpenPanel` are 8. Which means **the menu you get by clicking the status item
-is buried under the overlay.** Cover the screen in red, open the menu, take a
-screenshot: not one pixel of the menu is visible.
-
-The `◲` in the menu bar was visible all along, but only because the menu bar is
-owned by the WindowServer and therefore **appears in the capture** — it was
-showing through the glass. The dropdown is owned by our app, so it is excluded
-from the capture (per-app exclusion) and it is below in level too: neither
-visible nor showing through. With four items you could click from memory. The
-moment sliders went in, you could not.
-
-The fix is to drop the overlay to level 100 **only while a menu is open.** Normal
-windows (0), floating windows (3), modal panels (8) and the menu bar (24) are
-still covered, so the only thing that changes is our own menu. Dialogs go the
-other way and raise their own level above shielding.
+The overlay lives at `CGShieldingWindowLevel()` — 2147483628 — and a menu's
+dropdown window is 101. So while a menu is open the overlay **drops to level
+100.** Normal windows (0), floating windows (3), modal panels (8) and the menu
+bar (24) are still covered, and the only thing that changes is our own menu.
+Dialogs go the other way and raise their own level above shielding.
 
 The menu not getting the glass treatment is accepted. The premise of this window
 is that you must be able to get out through here even when the shader has made
 the screen unreadable, so the control panel being legible is the right trade.
+Before this, [the menu was buried under the
+glass](notes/history.md#the-menu-was-buried-under-the-glass) and invisible.
 
 ## Settings and profiles
 
@@ -101,7 +89,7 @@ heavy shader wants the scale turned down, and which one is right differs per
 shader.
 
 ```sh
-global-shader --profile golden-era     # apply (changes the running one, if any)
+global-shader --profile <name>         # apply (changes the running one, if any)
 global-shader --profiles               # list
 ```
 
