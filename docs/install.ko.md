@@ -20,8 +20,8 @@ open "$(brew --prefix global-shader)/GlobalShader.app"
 
 cask 는 다 만들어진 `.app` 을 내려받고, 홈브루는 내려받은 것에 격리(quarantine)
 표시를 단다. 그러면 Gatekeeper 가 공증을 요구하고, 공증은 유료 Apple Developer
-계정을 요구하는데 그 계정이 없다 — [`plan/`](../plan/README.md) 전체가 이 전제
-위에 쓰여 있다. 자체 서명으로는 대신할 수 없다. 애플이 그 인증서를 보증한다는
+계정을 요구하는데 그 계정이 없다 — [공개까지의 작업 목록](notes/plan/README.md)
+전체가 이 전제 위에 쓰여 있다. 자체 서명으로는 대신할 수 없다. 애플이 그 인증서를 보증한다는
 사실 자체가 검사의 내용 전부이기 때문이다.
 
 formula 는 설치하는 기계에서 컴파일한다. 앱을 내려받는 일이 없으니 격리될 것도

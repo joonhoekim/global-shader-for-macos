@@ -1,5 +1,7 @@
 # Repo shape
 
+*[← The list](README.md)*
+
 Everything except the languages. Ordered not by size but **by what blocks what** — if the
 earlier item is not done, the later one is meaningless.
 
@@ -353,7 +355,8 @@ from the symptom.
 - [x] `CONTRIBUTING.md` — how to add a shader: the two conventions, the `@min..max` knob
       notation, verifying with `--check`, and what does not get in (the "retired" section
       of the docs already states the standard)
-- [x] `plan/` is committed. These decisions will want rereading later
+- [x] these documents are committed (they now live in `docs/notes/plan/`). These
+      decisions will want rereading later
 
 ## 8. Deferred
 

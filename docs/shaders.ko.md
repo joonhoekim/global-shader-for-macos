@@ -2,66 +2,66 @@
 
 *[← README](../README.ko.md)  ·  [English](shaders.md)*
 
-## 지운 셋
-
-한때 `cyberpunk/rain.frag`(빗방울) · `print/riso.frag`(리소 망점) ·
-`print/dither.frag`(게임보이 4색)이 더 있었다. 리눅스 쪽 하이프랜드 세션에서
-실제로 걸어 보고 지웠다 — 셋 다 본문을 못 읽게 만드는데 그 대가로 얻는 룩이
-값어치가 없었다. 개선 여지가 아예 없지는 않았다. `rain.frag` 은 형제인
-`water/still.frag` 의 `busy()` 를 가져오면 글자 밭에서 굴절을 접을 수 있었고,
-`dither.frag` 은 `PIXEL` 을 내리면 나아졌다. 그래도 셋 다 "읽으면서 쓸 룩"이
-되지는 못한다. `dither.frag` 은 원리적으로 그렇다 — 글자를 지키려면 픽셀화를
-안 해야 하고, 그러면 그 셰이더가 아니다.
-
-새 셰이더를 받는 기준이 이것이고, [`CONTRIBUTING.md`](../CONTRIBUTING.md) 에
-그렇게 적혀 있다.
+```
+shaders/
+├── crt/          crt.frag  glow.glsl          브라운관, 그리고 그 블룸만 뗀 것
+├── water/        still.frag  river.frag  ocean.frag
+├── cyberpunk/    neon.frag  glitch.frag       겹쳐 쓰라고 만든 것
+└── print/        paper.frag                   전자잉크. 정지 화면에서 값이 0
+```
 
 폴더가 곧 갈래 이름이고, 메뉴 막대의 `체인 → 더하기` 도 이 모양 그대로 접힌다.
-파일이 서넛일 때는 한 단에 늘어놓는 게 맞았지만 열둘이 되면서 갈렸다 — 이름을
-하나씩 읽어야 무엇인지 알 수 있는 목록은 목록이 아니다.
+파일마다 자기 머리말에 값이 왜 그 값인지를 적어 두었고, 그 글이 그대로 슬라이더
+설명으로 돌아온다([손잡이](knobs.ko.md)).
 
-## `crt.frag` 한 장으로 — 복제를 걷었다
+고르기 전에 볼 것이 둘이다. **`time` 을 읽는가?** 읽으면 화면을 계속 다시 그려서
+노트북은 배터리로 값을 치른다. `glow.glsl` 과 `paper.frag` 은 아예 안 읽고,
+`crt.frag` 은 흐르는 손잡이를 0 으로 두면 멈춘다. 그리고 **그것을 통해 읽을 수
+있는가?** 여기 들어오는 셰이더가 넘어야 하는 선이 그것이다 —
+[안 받는 것](#안-받는-것).
 
-`crt.frag` 과 `crt-motion.frag` 이 따로 있었다. 흐르는 것(그레인·험 바·클릭
-리플)이 든 판과 안 든 판이고, 나눈 이유는 재그리기였다 — [손잡이](knobs.ko.md) 참고.
-
-**그 판단이 틀렸다기보다, 지키기로 한 것을 못 지켰다.** 합치기 전에 둘을
-대조했다:
-
-```
-curve · gun · focusAt · bloom · stripes · bezel   주석 뺀 코드 차이 0 줄
-crt.frag 에만 있는 #define                        없음 (motion 쪽이 초집합)
-FOCUS                                            0.18  vs  0.32   ← 어긋남
-FOCUS_NEAR                                       0.25  vs  0.28   ← 어긋남
-```
-
-`crt-motion.frag` 머리말에는 "여기를 고치면 `./crt.frag` 도 같이 고쳐야 한다"고
-적혀 있었다. 적어 두는 것으로는 안 된다는 것이 저 두 줄이다. 복제가 부르는 실패는
-"언젠가 어긋날 수 있다"가 아니라 이미 일어난 일이었다.
-
-어긋난 둘은 `crt.frag` 쪽(0.18 / 0.25)으로 맞췄다. 그쪽 주석이 왜 0.5 에서 거기까지
-내려왔는지를 적고 있고, motion 쪽 0.32 는 그 판단이 반영되기 전의 복사본이었기
-때문이다. 손잡이라 화면 보고 되돌리면 된다.
-
-옛 `crt.frag` 을 그대로 얻으려면:
+## 브라운관 갈래
 
 ```sh
-global-shader --set GRAIN 0
-global-shader --set HUM 0 && global-shader --set HUM_LIFT 0 && global-shader --set HUM_GLOW 0
-global-shader --set RIPPLE_GAIN 0 && global-shader --set RIPPLE_LIFT 0 && global-shader --set RIPPLE_GLOW 0
+global-shader shaders/crt/crt.frag                        # 유리 전체
+global-shader shaders/crt/glow.glsl                       # 블룸만
+global-shader shaders/crt/crt.frag shaders/crt/glow.glsl  # 이어서
 ```
+
+| | |
+|---|---|
+| `crt.frag` | 곡률 · 애퍼처 그릴 · 스캔라인 · 색수차 · 블룸과 초점, 그리고 필름 그레인 · 험 바 · 클릭 리플. 손잡이 30 개 |
+| `glow.glsl` | 인광 잔광만 — 곡률도 색수차도 그릴도 없다. `time` 을 안 읽는다 |
+
+`crt.frag` 은 자기 픽셀 **바깥**을 네 가지로 읽는다(곡률 · 색수차 · 블룸 · 초점).
+이 프로그램이 화면 위에 덧칠하지 않고 화면을 찍는 이유가 바로 이것이다 —
+[구조](architecture.ko.md) 의 표를 보라.
+
+**흐르는 것은 전부 손잡이 뒤에 있다.** `GRAIN` 과 `HUM*` 셋, `RIPPLE_*` 셋을 0 으로
+두면 아무것도 안 움직인다. 그 손잡이들에 `!motion` 이 붙어 있어서 계속 그리기도
+같이 꺼지고, 그러면 정지 화면에서 값이 0 인 셰이더가 된다. 한때는 안 흐르는 판과
+흐르는 판, 파일 두 장이었다 —
+[그 대가](notes/history.ko.md#crtfrag-과-crt-motionfrag-을-한-장으로) 는 노트에 있다.
+
+`glow.glsl` 은 매일 켜 둘 만한 부분만 따로 뗀 파일이다. `crt.frag` 과 뿌리가
+같지만(둘 다 하이프랜드 셰이더에서 내려왔다 —
+[라이선스와 먼저 있던 것들](provenance.ko.md)) 코드는 한 줄도 안 겹친다. 각각이
+독립된 프로그램이고, 블룸은 양쪽에서 같은 방식으로 다시 짰다 — 딱딱한 문턱을 둔
+고리가 아니라 부드러운 무릎을 둔 황금각 나선이다.
 
 ### 손잡이로 끄는 것이 공짜여야 한다
 
-아니면 나눌 이유가 안 없어진다. 두 가지가 붙어 있다.
+아니면 안 흐르는 판을 따로 둘 이유가 안 없어진다. 두 가지가 붙어 있다.
 
 **하나. 유니폼 분기.** 승격된 손잡이는 유니폼이라 컴파일러가 못 접는다 —
 `GRAIN` 을 0 으로 둬도 그레인 코드는 매 픽셀 돈다. `if (GRAIN > 0.0)` 로 감싸면
 유니폼 하나로 갈리는 분기라 워프가 통째로 같은 쪽으로 가서 실제로 안 돈다.
-감싸지 않으면 옛 두 파일의 차이(12.1ms → 14.0ms)가 그대로 상시 비용이 된다.
-같은 수법을 물 셋의 `PRESERVE` 가 쓴다.
+감싸지 않으면 안 흐르는 브라운관과 흐르는 브라운관의 차이(12.1ms → 14.0ms)가
+그대로 상시 비용이 된다. 같은 수법을 물 셋의 `PRESERVE` 가 쓴다.
 
-**둘. `!motion`.** [손잡이](knobs.ko.md) 참고.
+**둘. `!motion`.** 자동 재그리기 판정은 소스를 읽으므로 `GRAIN` 이 0 이어도
+`time` 을 보고 계속 그린다. 그렇지 않다고 셰이더가 말하는 방법이 이 표시다 —
+[손잡이](knobs.ko.md) 참고.
 
 ### 체인으로 쪼개지 않은 이유
 
@@ -78,21 +78,24 @@ global-shader --set RIPPLE_GAIN 0 && global-shader --set RIPPLE_LIFT 0 && global
 ## 물 셋
 
 ```sh
-./build/global-shader shaders/water/still.frag   # 잔잔한 수면
-./build/global-shader shaders/water/river.frag   # 흐르는 강
-./build/global-shader shaders/water/ocean.frag   # 파도치는 바다
+global-shader shaders/water/still.frag   # 잔잔한 수면
+global-shader shaders/water/river.frag   # 흐르는 강
+global-shader shaders/water/ocean.frag   # 파도치는 바다
 ```
 
 셋 다 알맹이는 두 줄이다 — 높이의 기울기를 구하고, 그만큼 `uv` 를 밀어서 읽는다.
-색과 반짝임은 그 위의 장식이고, **미는 것이 물이다.** 그래서 이 셋은 [구조](architecture.ko.md) 의 표에서
-캡처 방식이 아니면 안 되는 쪽에 있다. 감마 LUT 도 블렌드 오버레이도 `tex` 를
-못 읽으니 그 두 길에서는 파란 색조만 남는다. `crt.frag` 의 곡률이 캡처를
-정당화한 것과 같은 자리다.
+색과 반짝임은 그 위의 장식이고, **미는 것이 물이다.** 그래서 이 셋은
+[구조](architecture.ko.md) 의 표에서 캡처 방식이 아니면 안 되는 쪽에 있다. 감마
+LUT 도 블렌드 오버레이도 `tex` 를 못 읽으니 그 두 길에서는 파란 색조만 남는다.
+`crt.frag` 의 곡률이 캡처를 정당화한 것과 같은 자리다.
 
 높이를 만드는 방식이 셋을 가른다. 잔잔한 수면은 사인 넷의 간섭(기울기가
 해석적으로 나오고, 노이즈로 만들면 자글거려서 "잔잔한"이 아니게 된다), 강은
 흐름 축으로 늘인 FBM + 도메인 워프, 바다는 사인 너울 셋 위에 FBM 잔물결이다.
 자세한 건 각 파일 머리말에 있다.
+
+물은 움직이므로 셋 다 계속 다시 그린다. **여기엔 선택지가 없다** — 안 움직이는
+물은 물이 아니다 — 그리고 그것이 이 갈래가 피할 수 없는 배터리 값이다.
 
 ### 굴절 셰이더가 새로 치르는 값 둘
 
@@ -100,8 +103,8 @@ global-shader --set RIPPLE_GAIN 0 && global-shader --set RIPPLE_LIFT 0 && global
 먹는데([성능](performance.ko.md)), 굴절 셰이더에서는 그게 지연이 아니라 **어긋남**으로
 나타난다 — 커서가 가리키는 픽셀이 실제로는 `REFRACT` 픽셀만큼 옆으로 밀려
 있다. `crt.frag` 의 곡률에도 있던 문제지만 그건 정지해 있고 물은 움직인다.
-셰이더 쪽에서 고칠 방법이 없어서, 상시로 걸 `water-still.frag` 의 기본
-`REFRACT` 가 1.6 픽셀로 작다. `water-ocean.frag` 의 7 픽셀은 보는 용이다.
+셰이더 쪽에서 고칠 방법이 없어서, 상시로 걸 `water/still.frag` 의 기본
+`REFRACT` 가 1.6 픽셀로 작다. `water/ocean.frag` 의 7 픽셀은 보는 용이다.
 
 **글자가 흔들린다.** `PRESERVE` 가 기본으로 켜져 있어서 잔글씨가 몰린 자리에서
 밀림을 접는다. 참고한 [xatuke/screenshader](https://github.com/xatuke/screenshader)
@@ -128,9 +131,9 @@ global-shader --set RIPPLE_GAIN 0 && global-shader --set RIPPLE_LIFT 0 && global
 ## 사이버펑크 셋 — 겹쳐 쓰라고 만든 것
 
 ```sh
-global-shader shaders/cyberpunk/neon.frag                                    간판만
-global-shader shaders/crt/crt.frag shaders/cyberpunk/neon.frag                   브라운관 네온
-global-shader shaders/cyberpunk/neon.frag shaders/cyberpunk/glitch.frag          간판이 튄다
+global-shader shaders/cyberpunk/neon.frag                                간판만
+global-shader shaders/crt/crt.frag shaders/cyberpunk/neon.frag           브라운관 네온
+global-shader shaders/cyberpunk/neon.frag shaders/cyberpunk/glitch.frag  간판이 튄다
 ```
 
 | | |
@@ -138,13 +141,9 @@ global-shader shaders/cyberpunk/neon.frag shaders/cyberpunk/glitch.frag         
 | `neon.frag` | 밝기가 아니라 **채도**로 고르는 후광 |
 | `glitch.frag` | 가끔 터지는 띠 어긋남 · RGB 분리 · 찢김 |
 
-셋이었다. `rain.frag`(유리에 맺혀 흐르는 빗방울)이 가운데 칸이었는데 지웠다 —
-방울 밖을 흐리는 것이 이 효과의 전제인데 그 흐림이 본문을 통째로 못 읽게 만든다
-(위 「지운 셋」).
-
 **둘 다 혼자서도 서지만, 이 갈래는 처음부터 겹칠 것을 전제로 짰다.** 체인이
 생기기 전이라면 하나로 합쳐야 했고, 합치면 간판만 끄거나 순서를 바꿔 볼 수가
-없다([쓰는 법](usage.ko.md) 의 「체인」).
+없다([체인](usage.ko.md#체인--여러-장을-순서대로)).
 
 그 전제가 실제로 값을 하는 자리가 둘이다.
 
@@ -192,17 +191,13 @@ fract(time * RATE)             칸 안에서 얼마나 지났나  → 감쇠
 ## 인쇄 — 정지 화면에서 값이 0 인 룩
 
 ```sh
-global-shader shaders/print/paper.frag                    전자잉크
-global-shader shaders/print/paper.frag shaders/cyberpunk/glitch.frag 인쇄물이 깨진다
+global-shader shaders/print/paper.frag                                전자잉크
+global-shader shaders/print/paper.frag shaders/cyberpunk/glitch.frag  인쇄물이 깨진다
 ```
 
 | | |
 |---|---|
 | `paper.frag` | 전자잉크. **읽으려고** 거는 것 |
-
-셋이었다. `riso.frag`(CMYK 회전 망점)과 `dither.frag`(굵은 픽셀 + Bayer + 팔레트
-고정)이 같이 있었고, 둘 다 지웠다(위 「지운 셋」). 남은 한 장이 하필 그 셋 중
-유일하게 **읽으려고** 만든 것이었다는 게 이 갈래에서 배운 것이다.
 
 **`time` 을 한 번도 안 쓴다.** 그래서 재그리기가 꺼지고 정지 화면에서 GPU 를 안
 쓴다. 물 셋과 정확히 반대 축이고, 그쪽이 어쩔 수 없이 치르던 배터리 값을
@@ -214,10 +209,16 @@ global-shader shaders/print/paper.frag shaders/cyberpunk/glitch.frag 인쇄물�
 
 ### 읽으려고 거는 셰이더
 
-지운 `riso.frag` 과 `dither.frag` 은 화면을 알아보기 어렵게 만드는 대신 룩을
-얻었다. `paper.frag` 은 반대로 **글을 읽으려고** 거는 것이고, 그래서 다른 모든
-결정이 가독성 쪽으로 기운다. 셋 중 이것만 남은 것이 우연이 아닌 이유다.
+`paper.frag` 은 **글을 읽으려고** 거는 것이고, 그래서 다른 모든 결정이 가독성
+쪽으로 기운다. 그 차이가 `SHARP` 로 나온다. 이 레포의 셰이더가 대체로 흐리는
+쪽으로 움직이는데(블룸 · 초점 · 안개) 여기만 반대로 **날을 세운다.** 탈색과
+명암 압축이 획을 흐려 보이게 하므로, 언샵으로 되돌리지 않으면 종이가 아니라
+빛바랜 화면이 된다.
 
-그 차이가 `SHARP` 로 나온다. 이 레포의 셰이더가 대체로 흐리는 쪽으로 움직이는데
-(블룸 · 초점 · 안개) 여기만 반대로 **날을 세운다.** 탈색과 명암 압축이 획을
-흐려 보이게 하므로, 언샵으로 되돌리지 않으면 종이가 아니라 빛바랜 화면이 된다.
+## 안 받는 것
+
+그것을 통해 **읽을 수 없는** 셰이더는 그만한 값어치가 있어야 한다. 그 선을 못
+넘어서 지운 것이 셋 있다 — `rain.frag` · `riso.frag` · `dither.frag`, 셋 다
+본문을 못 읽게 만든다 — 그리고 그 기준이 여기서 나왔다:
+[지운 셰이더 셋](notes/history.ko.md#지운-셰이더-셋).
+[`CONTRIBUTING.md`](../CONTRIBUTING.md) 에 새 셰이더의 규칙으로 적혀 있다(영어).

@@ -44,7 +44,7 @@ BUILD_NUMBER="${GS_BUILD_NUMBER:-1}"
 # Claiming two more releases with no machine to check them on is another matter.
 #
 # 13.0 has **never actually been run**, either. That it builds is what is verified, and
-# docs/performance.md says so under "What has not been measured". Leaving it at 14 for no
+# docs/performance.md says so under "Not done yet". Leaving it at 14 for no
 # reason would just narrow who can use it.
 MIN_MACOS=13.0
 

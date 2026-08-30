@@ -1,17 +1,19 @@
-# plan/ — getting ready to go public
+# The list this repo was made public from
 
-This folder is the working list for making the repo something other people can use.
-Nothing here is about shaders or rendering — that side already works. What is here is
-**repo shape**: does the build run off this machine, do the strings come out in more
-than one language, is the version in one place, does the naming mean anything to
+*[← README](../../../README.md)*
+
+**This is finished work, kept as a record.** It was the checklist for turning a
+personal setup into something other people could install, and every item on it is
+done. Nothing here is about shaders or rendering — that side already worked. What is
+here is **repo shape**: does the build run off this machine, do the strings come out in
+more than one language, is the version in one place, does the naming mean anything to
 somebody else.
 
-## Where it stands
+It is kept because each item records *why* it was decided that way, and those reasons
+still hold. Nothing on this page is something a user needs in order to run the app —
+that is [`docs/`](../../../README.md#documentation).
 
-**Everything below is done except the screenshots** (57 of 58). What is left needs a
-person in front of a machine (screenshot, GIF).
-
-What is finished, in summary:
+## What it came to
 
 | | |
 |---|---|
@@ -40,7 +42,7 @@ formula (`Formula/global-shader.rb`, this repo being its own tap), and what wait
 account is the cask alone.
 
 What the formula pays instead is one thing, written down in
-[`docs/install.md`](../docs/install.md): every install builds the app fresh and ad-hoc
+[`docs/install.md`](../../install.md): every install builds the app fresh and ad-hoc
 signed, so Screen Recording permission has to be granted again after an upgrade. The
 certificate that fixes this for a clone cannot fix it from inside a formula — Homebrew
 builds in a sandbox that denies `~/Library/Keychains` and hands the build a throwaway
@@ -169,7 +171,7 @@ code written in between.** The remaining items barely produce any strings.
       Done: `crt.frag` alone, then chained with `glitch.frag`, over a terminal and over a
       browser. Both READMEs carry the same three pieces of media
 - [x] `CONTRIBUTING.md` — how to add a shader (the two conventions, verifying with `--check`)
-- [x] `plan/` is **not** in `.gitignore` — these documents are committed
+- [x] these documents are **not** in `.gitignore` — they are committed
 
 ### 6. Deferred
 

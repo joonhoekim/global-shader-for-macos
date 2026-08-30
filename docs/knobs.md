@@ -161,15 +161,11 @@ freeze the screen. Saving an edited shader re-runs the judgement.
 ## Knobs open and close time — `!motion`
 
 **"Reads time" and "is flowing right now" are different things.** The judgement
-above only sees the source, so it cannot tell them apart. That never mattered
-while the flowing and non-flowing variants were two separate files — which is
-what `crt.frag` and `crt-motion.frag` were.
-
-Merging those two into one file ([The shaders](shaders.md)) made the judgement
-insufficient.
-The merged file still has `time` in its source with grain at 0, so it would
-always be on, which makes **the merge itself a regression** — you can turn it off
-with a knob, but the battery keeps draining.
+above only sees the source, so it cannot tell them apart. `crt.frag` has `time`
+in it whether the grain is running or not, so on that judgement alone it would
+draw continuously even with every moving part turned off — and the one thing that
+file has going for it, costing nothing on a still screen, would be gone. Turning
+a knob down would stop the motion and keep draining the battery.
 
 So the shader declares it. Putting `!motion` next to an `@range` means "when this
 value is 0, the motion this knob is responsible for stops", and **when every
@@ -190,23 +186,10 @@ The judgement re-runs on every value change. Reading the markers only once at
 first translation would mean the battery keeps draining after you pull the slider
 down — the kind of fault that is invisible on screen.
 
-What was actually confirmed to differ:
-
-```
-crt.frag defaults                     redraw = true
-crt.frag all motion knobs at 0        redraw = false
-crt.frag GRAIN brought back           redraw = true
-water/still.frag defaults             redraw = true
-print/riso.frag (does not read time)  redraw = false
-crt.frag(0) → water/still.frag        redraw = true    ← the later pass flows
-crt.frag(0) → print/riso.frag         redraw = false
-```
-
-(A shader with no declarations is judged from source as before. When this was
-checked, `still.frag` had no markers yet; now they are on `SPEED` and `CLICK`.
-`riso.frag` was removed afterwards — this table is **what was actually measured
-at the time**, so the names have not been rewritten. To check the same thing
-today, `print/paper.frag` stands in. It does not read `time` either.)
+What the marked shaders come out as is the table under
+[The shader decides whether to keep drawing](#the-shader-decides-whether-to-keep-drawing)
+above; what was measured when this landed is in the
+[notes](notes/history.md#what-was-measured-when-motion-landed).
 
 `--status` returns `redraw` and `redrawMode`. **You cannot read this off fps** —
 frames arrive whenever the screen changes even with redraw off, and `fps` is the
