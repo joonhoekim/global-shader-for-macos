@@ -31,6 +31,10 @@
   "capture.problem.notStarted": {
     "en": "capture did not start. Screen Recording permission appears to be granted."
   },
+  "capture.problem.stopped": {
+    "en": "capture stopped and has not come back. The screen is unshaded until it does.",
+    "note": "Shown in the menu bar after a stream has been down for 30 seconds. The app keeps trying to reopen it."
+  },
   "check.demoted": {
     "args": [
       "String"
@@ -222,6 +226,14 @@
     ],
     "en": "%1$@ capture failed: %2$@"
   },
+  "log.captureReopened": {
+    "args": [
+      "String",
+      "Int"
+    ],
+    "en": "%1$@ capture reopened after %2$d failed attempts",
+    "note": "%1$@ is a display name. Logged when a stream that the system ended comes back."
+  },
   "log.captureStalled": {
     "args": [
       "String"
@@ -284,6 +296,10 @@
   },
   "log.redrawAuto": {
     "en": " · auto"
+  },
+  "log.woke": {
+    "en": "woke — reopening capture",
+    "note": "Logged on the wake notification, before the streams are reopened."
   },
   "login.err.bootstrap": {
     "args": [

@@ -10,6 +10,7 @@ read while using it stay about what is there now.
 - [`crt.frag` and `crt-motion.frag`, merged into one](#crtfrag-and-crt-motionfrag-merged-into-one)
 - [The menu was buried under the glass](#the-menu-was-buried-under-the-glass)
 - [What was measured when `!motion` landed](#what-was-measured-when-motion-landed)
+- [The screen that woke up frozen](#the-screen-that-woke-up-frozen)
 
 The pre-release checklist this repo was made public from is beside this file, in
 [`plan/`](plan/README.md).
@@ -121,3 +122,61 @@ checked, `still.frag` had no markers yet; now they are on `SPEED` and `CLICK`.
 `riso.frag` was removed afterwards — this table is **what was actually measured
 at the time**, so the names have not been rewritten. To check the same rows
 today, `print/paper.frag` stands in: it does not read `time` either.
+
+## The screen that woke up frozen
+
+Close the lid with the shader running, open it again, and the screen came back
+wrong: the shader was clearly alive — grain moving, the hum bar rolling — over a
+picture of the desktop from before the lid closed. The cursor moved normally,
+because the window server draws it above the overlay and it never went through
+the shader at all. `--reload` changed nothing, since re-reading a shader has
+nothing to do with capture. Quitting from the menu bar and starting again fixed
+it, which is a strange thing to have to know.
+
+What is actually happening is one line of ScreenCaptureKit behaviour:
+
+```
+SCStreamErrorDomain code -3815   Failed to find any displays or windows to capture
+```
+
+A stream does not pause when the display goes away. It **ends**, `didStopWithError`
+is delivered, and nothing resumes it on wake. Measured with a bare stream and a
+one-second tick, on display sleep alone — no lid, no system sleep:
+
+```
+t=  5s  complete=47  ageOfLastComplete=0.1s
+        !! didStopWithError -3815
+t=  6s  complete=54  ageOfLastComplete=0.4s     ← the last frames in flight
+t= 28s  complete=54  ageOfLastComplete=22.4s    ← awake again for seven seconds
+```
+
+The freeze that reaches the eye is the app's own doing on top of that. The redraw
+timer holds the last frame so that a knob dragged on a still screen still draws
+something ([the slider that did nothing](../knobs.md#the-slider-that-did-nothing-on-a-still-screen)),
+and it went on pushing that frame — the one from before the lid closed — through
+the shader at the refresh rate, forever. Taking the window down on the error did
+not help either: the very next redraw tick counted as a frame arriving, and put
+the window back up.
+
+So three things, in the order they matter:
+
+1. **Stop painting when the stream stops.** The redraw timer is cancelled and the
+   held frame dropped. Whatever else goes wrong, a dead stream cannot be dressed
+   up as a live one.
+2. **Reopen the stream.** Every half second for the first four seconds, then
+   backing off to five, for as long as anyone wants the capture running. While
+   the screen is dark every attempt fails with the same -3815, which is exactly
+   right — the one that lands after it comes back is the one that matters.
+3. **Say it in the numbers.** `--status` grew `stale` (seconds since a frame came
+   **from the stream** — redraw and nudge do not touch it) and `restarts`. The old
+   `fps` could not have shown this: with redraw on, a capture that died at the lid
+   closing goes on reporting a healthy 60.
+
+The wake notifications (`didWake`, `screensDidWake`) are wired up too, but only as
+a shortcut — they cancel the backoff so a wake does not spend up to five seconds
+showing an unshaded screen. They are deliberately not the mechanism: the same
+probe run as a bare process never received them at all, and recovery that depends
+on a notification arriving is recovery that has a way of not happening. In
+practice the notification arrives **before the display is back** — around seven
+seconds before, on this machine — so the retry loop is what actually lands it.
+

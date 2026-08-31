@@ -168,7 +168,7 @@ launchd.user.agents.global-shader = {
 | | `profile delete <이름>` | 지운다 |
 | `--login [on\|off]` | `login [status\|on\|off]` | 로그인 항목 |
 | `--reload` | `reload` | 셰이더를 다시 읽는다 |
-| `--status` | `status` | 체인·프로필·손잡이 수·화면 수·재그리기·fps (JSON) |
+| `--status` | `status` | 체인·프로필·손잡이 수·화면 수·재그리기·캡처 정체 시간·스트림 재연결 횟수·fps (JSON) |
 | `--stop` | `stop` | 끝낸다 |
 
 경로와 프로필 이름은 공백을 품을 수 있으므로 **줄의 나머지 전체**를 하나로 받는다.

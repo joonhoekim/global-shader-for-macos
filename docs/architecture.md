@@ -153,7 +153,14 @@ not also take away the screen you need in order to fix it.
 - The overlay is `ignoresMouseEvents`, so every click goes through. The menu bar
   status item shows through the shader and is still clickable — you can get out
   through it even when the shader has made the screen unreadable.
-- If capture stops, that display's window is taken down.
+- If capture stops, that display's window is taken down **and a new stream is
+  opened.** Closing the lid, or letting the screen go dark on its own, does not
+  pause the stream — SCK ends it (`SCStreamErrorDomain -3815`, "Failed to find any
+  displays or windows to capture") and nothing brings it back on wake. Taking the
+  window down is half of it; the other half is that the frame the dead stream left
+  behind stops being drawn, or the screen freezes on the picture from before the
+  lid closed while the shader goes on animating over it, which reads as the app
+  working. See [the sleep story](notes/history.md#the-screen-that-woke-up-frozen).
 - A second instance is refused, because it is feedback in itself (above).
 - File saves are caught by polling every 0.4 s. Not kqueue, because vim and
   VS Code write a new file and rename on save — a watch holding an fd would be

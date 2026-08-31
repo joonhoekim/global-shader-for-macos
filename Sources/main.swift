@@ -185,6 +185,9 @@ final class App: NSObject, NSApplicationDelegate, CaptureDelegate {
     /// Why capture never attached. Shown verbatim in the menu.
     private(set) var captureProblem: String?
     private var captureWatchdog: DispatchSourceTimer?
+    /// Armed when a stream stops, disarmed when one comes back. What keeps an outage
+    /// that never resolves from looking exactly like the app not running.
+    private var outageWatchdog: DispatchSourceTimer?
     /// Whether even one frame arrived. Written on the capture queue, read on main.
     private var sawFrame = false
     /// The last failure. Shown verbatim in the menu — launched without a terminal,
@@ -262,6 +265,7 @@ final class App: NSObject, NSApplicationDelegate, CaptureDelegate {
 
         startControl()
         watchSpaceChanges()
+        watchWake()
     }
 
     func applicationWillTerminate(_ n: Notification) {
@@ -357,6 +361,63 @@ final class App: NSObject, NSApplicationDelegate, CaptureDelegate {
         }
         t.resume()
         captureWatchdog = t
+    }
+
+    // ── A capture that stopped and has not come back ─────────────────────
+    //
+    // The retry runs on its own inside DisplayCapture, and while it runs the window is
+    // down. That is right for the ordinary case — a dark screen comes back within a
+    // second of waking — but it means a capture that never returns looks exactly like
+    // the app not running: no window, no error, nothing.
+    //
+    // Thirty seconds is chosen to be longer than any wake takes and shorter than
+    // anyone's patience. It is disarmed the moment a stream comes back.
+    private func startOutageWatchdog() {
+        guard outageWatchdog == nil else { return }
+        let t = DispatchSource.makeTimerSource(queue: .main)
+        t.schedule(deadline: .now() + 30)
+        t.setEventHandler { [weak self] in
+            guard let self else { return }
+            self.outageWatchdog = nil
+            // secondsSinceLiveFrame counts frames from the stream alone, so a still
+            // screen being redrawn from the timer cannot pass for a live one here.
+            guard self.surfaces.contains(where: {
+                ($0.capture?.secondsSinceLiveFrame ?? 0) > 20
+            }) else { return }
+            self.captureProblem = Str.capture_problem_stopped
+            self.log(self.captureProblem!)
+            self.refreshStatusItem()
+        }
+        t.resume()
+        outageWatchdog = t
+    }
+
+    // MARK: Waking up
+
+    // Reopening the stream is DisplayCapture's own job, on a timer that backs off to
+    // five seconds. This only shortens that: on a wake there is no reason to spend up
+    // to five seconds showing an unshaded screen when the notification says the
+    // moment has come.
+    //
+    // It is a shortcut, not the mechanism, and deliberately so. A bare process running
+    // the same probe never received these notifications at all, so the recovery must
+    // not depend on them arriving.
+    private func watchWake() {
+        let nc = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.didWakeNotification, NSWorkspace.screensDidWakeNotification] {
+            nc.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                guard let self else { return }
+                self.log(Str.log_woke)
+                // The lid can be closed with an external display attached and opened
+                // with it unplugged. didChangeScreenParameters handles that on its
+                // own, but there is no order guaranteed between the two, and reopening
+                // a stream for a display that is gone can only fail.
+                let want = Set(NSScreen.screens.compactMap { $0.displayID })
+                let have = Set(self.surfaces.map { $0.displayID })
+                if want != have { self.rebuildSurfaces() }
+                else { for s in self.surfaces { s.capture?.restartNow() } }
+            }
+        }
     }
 
     /// Opens the Screen Recording pane in System Settings.
@@ -786,6 +847,17 @@ final class App: NSObject, NSApplicationDelegate, CaptureDelegate {
             let cap = captureProblem.map {
                 "\"\($0.replacingOccurrences(of: "\"", with: "\\\""))\""
             } ?? "null"
+            // How long since a frame came **from the stream**, and how many times a
+            // stream had to be reopened. fps cannot answer the first: with redraw on,
+            // a capture that stopped at the lid closing goes on reporting a healthy 60
+            // while the picture underneath is minutes old. That is the number that was
+            // missing when this had to be diagnosed by eye.
+            //
+            // A large value is not by itself a fault — a still screen with redraw off
+            // produces nothing for minutes, quite correctly. Read it against restarts.
+            let stale = String(format: "%.1f",
+                surfaces.compactMap { $0.capture?.secondsSinceLiveFrame }.max() ?? -1)
+            let restarts = surfaces.reduce(0) { $0 + ($1.capture?.restartCount ?? 0) }
             // Version first. It is the first thing to ask about an issue, and with a hole
             // that already emits JSON, leaving it out means someone has to dig it up by hand.
             return "{\"version\":\"\(Build.version)\",\"build\":\"\(Build.number)\","
@@ -802,6 +874,7 @@ final class App: NSObject, NSApplicationDelegate, CaptureDelegate {
             // place that answers "why is a still screen using battery". mode comes along
             // because auto's own decision and an explicit --redraw override read differently.
                  + "\"redraw\":\(continuousRedraw),\"redrawMode\":\"\(runtime.redraw)\","
+                 + "\"stale\":\(stale),\"restarts\":\(restarts),"
                  + "\"fps\":\(fps)}"
 
         case "stop":
@@ -997,13 +1070,35 @@ final class App: NSObject, NSApplicationDelegate, CaptureDelegate {
         }
     }
 
+    // The stream ended. Almost always that means the display went away — the lid
+    // closed, or the screen went dark on its own — and SCK ends the stream rather than
+    // pausing it (the measurement is in the header of Capture.swift). The capture is
+    // already trying to open a new one and has stopped painting the frame it held, so
+    // what is left here is the window and the menu bar.
     func capture(_ capture: DisplayCapture, didFailWith error: Error) {
         DispatchQueue.main.async {
             self.log(Str.log_captureStalled(error.localizedDescription))
-            // A window with no frames arriving is a black screen. Take it down too.
+            // A window with no frames arriving keeps showing the last thing drawn into
+            // it. Take it down; the first frame of the new stream brings it back, by
+            // the same isPresented path that puts it up at launch.
             for s in self.surfaces where s.displayID == capture.displayID {
                 s.window.orderOut(nil)
                 s.isPresented = false
+            }
+            self.startOutageWatchdog()
+        }
+    }
+
+    func capture(_ capture: DisplayCapture, didRestartAfter attempts: Int) {
+        DispatchQueue.main.async {
+            let name = self.surfaces.first { $0.displayID == capture.displayID }?
+                .screen.localizedName ?? String(capture.displayID)
+            self.log(Str.log_captureReopened(name, attempts))
+            self.outageWatchdog?.cancel()
+            self.outageWatchdog = nil
+            if self.captureProblem != nil {
+                self.captureProblem = nil
+                self.refreshStatusItem()
             }
         }
     }

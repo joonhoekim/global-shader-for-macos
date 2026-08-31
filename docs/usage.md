@@ -184,7 +184,7 @@ setting — see [Languages](i18n.md).
 | | `profile delete <name>` | delete it |
 | `--login [on\|off]` | `login [status\|on\|off]` | the login item |
 | `--reload` | `reload` | re-read the shaders |
-| `--status` | `status` | version, chain, profile, knob count, display count, redraw, fps (JSON) |
+| `--status` | `status` | version, chain, profile, knob count, display count, redraw, capture staleness, stream restarts, fps (JSON) |
 | `--stop` | `stop` | exit |
 
 Paths and profile names can contain spaces, so **the entire rest of the line** is
